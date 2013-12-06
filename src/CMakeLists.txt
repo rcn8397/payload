@@ -8,11 +8,20 @@ include_directories( "${GLIB2_INCLUDE_DIRS}" )
 
 add_executable( ecc_client
                 main.c 
+                client.c
                 udp_socket.c )
 
 add_executable( ecc_server
                 main.c 
+                server.c
                 udp_socket.c )
+
+
+##########################################################
+## Setup Flags
+
+set_target_properties(ecc_client PROPERTIES COMPILE_DEFINITIONS "CLIENT")
+set_target_properties(ecc_server PROPERTIES COMPILE_DEFINITIONS "SERVER")
 
 
 ##########################################################

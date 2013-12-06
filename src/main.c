@@ -2,6 +2,15 @@
 #include <glib.h>
 
 
+#if defined( CLIENT )
+  #include "client.h"    
+#else
+  #include "server.h"    
+#endif
+
+
+
+
 int main(int argc, char *argv[])
 {
     const char *port = "1234";
@@ -22,6 +31,12 @@ int main(int argc, char *argv[])
 
     g_option_context_free( context );
 
+
+#if defined( CLIENT )
+    client();
+#else
+    server();
+#endif
 
     return 0;
 }
