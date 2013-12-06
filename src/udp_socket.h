@@ -3,10 +3,10 @@
 
 #define MAXBUFFERLEN 100
 
-int UDP_ClientInit( char *port, char *ip );
+int UDP_ClientInit( const char *port, const char *ip );
 int UDP_send( char *buff, int size );
-int UDP_ServerInit( char *port, char *ip );
-int UDP_recv( char *buff, int size );
+int UDP_ServerInit( const char *port, const char *ip );
+int UDP_recv( char *buff, int *size );
 void UDP_close( void );
 
 

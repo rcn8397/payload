@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
 
 
 #if defined( CLIENT )
-    client();
+    client( addr, port );
 #else
-    server();
+    server( addr, port );
 #endif
 
     return 0;
