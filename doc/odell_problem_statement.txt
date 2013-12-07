@@ -1,0 +1,124 @@
+CSE 5344 Students –
+
+ 
+
+Following is the list of final project topics for this course.  Projects should be completed
+and submitted by teams of 3 or 4 students (group effort).   Each team may select any one of
+the topics shown below.  The intent of these projects is to provide you with an opportunity
+to use what we have studied in this course but to go beyond the topics that we have discussed
+in the classroom.  Each project requires research, analysis, critical thinking, and
+modeling/experimenting, then documentation of your findings in a paper that could be submitted
+for a conference.
+
+ 
+
+Create your own teams, select your topic and let me know what you are working own and who is
+on the team via email by 11/4/13.  One email per team is fine.  If you would like to propose
+an alternative project, please send me a description before 11/1/13, that describes the project
+and names team members.
+
+ 
+
+TOPIC 1:  A BETTER UDP
+
+ 
+
+A more TCP-like UDP.    Much work has been done, and documents in RFCs, to define a faster,
+better TCP.    The challenge is that with the current model, and the services provided, a
+penalty is incurred in overhead and performance.   Some studies address introducing a better
+UDP protocol that provides some of the more essential TCP services, like reliable data transfer.
+One approach considers error-correcting codes built on top of UDP to provide the reliability
+and in-order delivery of TCP but with speed closer to that of UDP. 
+
+ 
+
+For this project you will investigate current literature on a "better UDP" and propose a
+protocol that implements "TCP-like" improvements, with much lower packet processing overhead.
+Consider implementation as an enhancement that will maintain compatibility with standard UDP
+implementations.   Demonstrate/validate your protocol's operation and your assertions by
+implementing a packet processing model in a programming language/environment of your choice.
+Write up your proposal in a paper, prepared for submission in IEEE paper format
+(http://www.ieee.org/conferences_events/conferences/publishing/templates.html. 
+
+ 
+
+ 
+
+TOPIC 2: A BETTER TCP
+
+ 
+
+As the Internet has matured in terms of the way applications use it and our understanding of
+some of its limitations, it has become apparent that TCP is not ideally suited in many
+circumstances.  As a result, there are several evolving proposals that are under review
+and proposed as standards.  One such proposal is Stream Control Transmission Protocol as
+defined in RFC 3286 and RFC 4960.  Another proposed standard, TCP Friendly Rate Control
+(RFC 5348) deals with improved mechanisms for congestion control.
+
+ 
+
+For this project you will investigate current literature on improvements to TCP and
+evaluate them with respect to their viability in today's Internet.  Consider issues
+such as performance, packet overhead, processing overhead and application interface
+specifications.   Evaluate impact on existing and new applications and discuss the
+feasibility of transition to the new approach(es) by Internet application/content
+providers.   Demonstrate/validate your findings by implementing your packet processing
+model or models in a programming language/environment of your choice.   Write up your
+findings in a paper, prepared for submission in IEEE paper format
+(http://www.ieee.org/conferences_events/conferences/publishing/templates.html). 
+
+ 
+
+ 
+
+TOPIC 3: A BETTER IP
+
+ 
+
+IETF literature contains much information and numerous proposals for improving IP with
+ATM-like enhancements since modern Internet applications demand services not provided by a
+best-effort service model.   Two complementary, yet fundamentally different, traffic management
+frameworks have evolved: Integrated Services and Differentiated Services (also see K&R textbook,
+Chapter 7).  These approaches specify traffic control mechanisms such as queuing discipline
+and packet discard policy to ensure more reliable bandwidth assurance for applications that need it. 
+
+ 
+
+For this project you will investigate current literature on the Internet's network layer
+protocols/architectures focused on improved quality of service and evaluate the pros and
+cons of each approach.  Demonstrate/validate your findings and your assertions by implementing
+a packet processing model in a programming language/environment of your choice.   Write up your
+findings in a paper, prepared for submission in IEEE paper format
+(http://www.ieee.org/conferences_events/conferences/publishing/templates.html). 
+
+ 
+
+ 
+
+TOPIC 4: REAL TIME FOR THE INTERNET
+
+ 
+
+The Internet's Real Time Protocol (RTP, per RFC 3550) provides a standard approach for dealing
+with audio and video data transferred between applications that require special handling.
+Applications such a VoIP, streaming media, television and videoconferencing use RTP for data
+delivery.
+
+ 
+
+For this project you will investigate current literature on the Internet's Real Time Protocol
+and evaluate its strengths and weaknesses for "real time" operation in a packet switched network.
+Demonstrate/validate your findings and your assertions by implementing an application that uses
+and models the Real Time Protocol in a programming language/environment of your choice.   Write
+up your findings in a paper, prepared for submission in IEEE paper format 
+(http://www.ieee.org/conferences_events/conferences/publishing/templates.html).
+
+ 
+
+____________________________________  
+
+Mike O’Dell
+Senior Lecturer & Graduate Advisor
+Computer Science & Engineering
+Course Website:  http://ranger.uta.edu/~odell
+Email: odell@uta.edu
