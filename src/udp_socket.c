@@ -96,13 +96,6 @@ int UDP_send( char *buff, int size )
 
 void UDP_close( void )
 {
-    //if( addrs == NULL )
-    //{
-    //    g_log( log_domain, 
-    //           G_LOG_LEVEL_CRITICAL,
-    //           "UDP_close: No socket bound" );
-    //}
-
     freeaddrinfo( addrs );
     close( sockfd );
 }
