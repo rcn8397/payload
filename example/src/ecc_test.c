@@ -29,7 +29,18 @@ byte H [D][N] = { { 1, 1, 0, 1, 1, 0, 0 },
                   { 0, 1, 1, 1, 0, 0, 1 } };
 
 
+/* coset leader LUT index by syndrome (i.e. syn = 001 = index 4) */
+byte coset_leader [N+1][N] = { { 0, 0, 0, 0, 0, 0, 0 }, 
+                               { 0, 0, 0, 0, 1, 0, 0 },
+                               { 0, 0, 0, 0, 0, 1, 0 },
+                               { 1, 0, 0, 0, 0, 0, 0 },
+                               { 0, 0, 0, 0, 0, 0, 1 },
+                               { 0, 1, 0, 0, 0, 0, 0 },
+                               { 0, 0, 1, 0, 0, 0, 0 },
+                               { 0, 0, 0, 1, 0, 0, 0 } } ;
 
+
+/* prints the generator matrix G, which converts msgs to codewords */
 void printG ()
 {
   int i, j;
@@ -44,6 +55,7 @@ void printG ()
 }
 
 
+/* prints the parity-check matrix G, which is used to compute syndromes */
 void printH ()
 {
   int i, j;
@@ -58,6 +70,7 @@ void printH ()
 }
 
 
+/* prints the given msg */
 void printm (byte *msg)
 {
   int k;
@@ -70,6 +83,7 @@ void printm (byte *msg)
 }
 
 
+/* prints the given codeword */
 void printc (byte *codeword)
 {
   int n;
@@ -112,6 +126,7 @@ void H_x_Gt ()
 }
 
 
+/* makes a msg based on i */
 void make_message(byte *msg, byte i)
 {
   int j, remaining, div;
@@ -157,35 +172,72 @@ void encode ( /*in*/ byte *msg, /*out*/ byte *codeword )
 }
 
 
-/* codeword = encode(msg) */
-void decode ( /*in*/ byte *codeword, /*out*/ byte *msg )
+/* multiplies received vector by H to give syndrome */
+void compute_syndrome (byte *received, byte *syndrome)
 {
-  int n, k;
+  int n, d;
   /* matrix multiplication */
-  for ( n=0; n<N; n++ )
+  for ( d=0; d<D; d++ )
   {
-    codeword [n] = 0 ;
-    for ( k=0; k<K; k++)
-      codeword [n] ^= ( msg [k] & G [k][n] ) ;
+    syndrome [d] = 0 ;
+    for ( n=0; n<N; n++)
+      syndrome [d] ^= ( received [n] & H [d][n] ) ;
   }
   
   /* printout */
-  printf ("codeword = encode(") ;
+  printf ("syndrome = compute_syndrome(") ;
+  for ( n=0; n<N; n++ )
+    printf ( "%d", received [n] ) ;
+  printf (") = ") ;
+  for ( d=0; d<D; d++ )
+    printf ( "%d", syndrome [d] ) ;
+  
+}
+
+
+/* msg = decode(received) */
+void decode ( /*in*/ byte *received, /*out*/ byte *msg )
+{
+  byte syndrome [D] ;
+  byte codeword [N] ;
+  byte e ;  /* e is a index to the error vector */
+  byte n ;
+  byte k ;
+  
+  /* calc syndrome */
+  compute_syndrome (received, syndrome) ;
+  
+  /* codeword = r + e, and msg = codeword [1:K] */
+  for ( n=0; n<N; n++ )
+  {
+    codeword [n] = received [n] ^ coset_leader [    syndrome [0] 
+                                                 | (syndrome [1] << 1)
+                                                 | (syndrome [2] << 2) ][n] ;
+    if (n<K)
+      msg [n] = codeword [n] ;
+  }
+  
+  /* printout */
+  printf (",   ") ;
+  printf ("msg = decode(") ;
+  for ( n=0; n<N; n++ )
+    printf ( "%d", received [n] ) ;
+  printf (") = ") ;
   for ( k=0; k<K; k++ )
     printf ( "%d", msg [k] ) ;
-  printf (") = ") ;
-  for ( n=0; n<N; n++ )
-    printf ( "%d", codeword [n] ) ;
   
 }
 
 
 
+/* main program entry point */
 int main()
 {
-  byte i;
+  byte i, j;
   byte      msg [K] ;
   byte codeword [N] ;
+  byte received [N] ;
+  byte syndrome [D] ;
   
   /* prelims */
   printG () ;
@@ -195,19 +247,39 @@ int main()
   H_x_Gt  () ;
   
   
+  /* these are all codewords, so syndrome should be all-zero vector */
   for (i=0; i<K*K; i++)
   {
-    
     /* choose msg (actually do all possible 4-bit combos) */
     make_message (msg, i) ;
     
     /* encode msg */
     encode ( msg, codeword ) ;
-    //printf (",          ") ;
-    //decode ( codeword, msg ) ;
+    printf (",   ") ;
+    decode ( codeword, msg ) ;
     printf ("\n") ;
     
   }
+  printf ("\n") ;
+
+  /* now let's test correction of one error in received vector */
+  printf ("testing ECC...\n") ;
+  i = 15 ;
+  make_message (msg, i) ;
+  encode ( msg, codeword ) ;
+  printf ("\n") ;
+  for (i=0; i<=N; i++)
+  {
+    /* send it thru noisy channel (causing an error) */
+    for (j=0; j<N; j++)
+      received [j] = codeword [j] ^ coset_leader [i][j] ;
+    
+    /* determine syndrome */
+    decode ( received, msg ) ;
+    printf ("\n") ;
+    
+  }
+  printf ("\n") ;
   
   return 0;
 }
