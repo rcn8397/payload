@@ -32,6 +32,9 @@ int UDP_ClientInit( const char *port, const char *ip )
     struct addrinfo hints;
     
     log_domain = g_strdup( "CLIENT_SOCKET" );
+    printf(" addr: %s\n", ip );
+    printf(" port: %s\n", port );
+
 
     ///< Data setup
     memset( &hints, 0, sizeof( hints ) );
@@ -77,7 +80,7 @@ int UDP_send( char *buff, int size )
     {
         g_log( log_domain, 
                G_LOG_LEVEL_CRITICAL,
-               "No socket bound" );
+               "UDP_send: No socket bound" );
         return -1;
     }
 
@@ -93,12 +96,12 @@ int UDP_send( char *buff, int size )
 
 void UDP_close( void )
 {
-    if( addrs == NULL )
-    {
-        g_log( log_domain, 
-               G_LOG_LEVEL_CRITICAL,
-               "No socket bound" );
-    }
+    //if( addrs == NULL )
+    //{
+    //    g_log( log_domain, 
+    //           G_LOG_LEVEL_CRITICAL,
+    //           "UDP_close: No socket bound" );
+    //}
 
     freeaddrinfo( addrs );
     close( sockfd );
@@ -110,6 +113,11 @@ int UDP_ServerInit( const char *port, const char *ip )
     int status;
     struct addrinfo hints;
     struct addrinfo *addrs; //< results list
+
+    log_domain = g_strdup( "SERVER_SOCKET" );
+    printf(" addr: %s\n", ip );
+    printf(" port: %s\n", port );
+
 
     ///< Data setup
     memset( &hints, 0, sizeof( hints ) );
@@ -159,10 +167,12 @@ int UDP_ServerInit( const char *port, const char *ip )
 
 int UDP_recv( char *buff, int *size )
 {
+    int status = 0;
     struct sockaddr_storage client_addr;
     socklen_t addr_len;
     char client_name[ INET6_ADDRSTRLEN ];
     const char *ip;
+    int done = FALSE;
 
     if( p == NULL )
     {
@@ -171,27 +181,41 @@ int UDP_recv( char *buff, int *size )
                "UDP_rec: No socket bound" );
         return -1;
     }
+    
+    if( !sockfd )
+        return -1;
 
     addr_len = sizeof( client_addr );
 
-    *size = recvfrom( sockfd,
-                      buff,
-                      *size,
-                      MAXBUFFERLEN - 1,
-                      ( struct sockaddr *) &client_addr, 
-                      &addr_len );
-    
-    ///< Debug
-    ip = inet_ntop( client_addr.ss_family, 
-                    get_in_addr( ( struct sockaddr * ) &client_addr ),
-                    client_name, 
-                    sizeof (client_name ) );
-    if( ip )
+    while( 1 )
     {
-        printf( "UDP_recv: got packet from %s\n", ip );
-    }
+        status = 0;
+        errno = 0;
+        *size = recvfrom( sockfd,
+                          buff,
+                          *size,
+                          MAXBUFFERLEN - 1,
+                          ( struct sockaddr *) &client_addr, 
+                          &addr_len );
+        status = errno;
+        //printf("%s\n", strerror( status ) );
+    
+        ///< Debug
+        ip = inet_ntop( client_addr.ss_family, 
+                        get_in_addr( ( struct sockaddr * ) &client_addr ),
+                        client_name, 
+                        sizeof (client_name ) );
+        if( ip && (*size > 0 ) )
+        {
+            buff[ *size ] = '\0';
+            printf( "UDP_recv: got packet from %s\n", ip );
+            printf( "UDP_recv: %d bytes received\n", *size );
+            printf( "UDP_recv: msg: %s \n", buff );
+            return 0;
+        }
 
-    printf( "UDP_recv: %d bytes received\n", *size );
+       
+    }
     
         
     return 1;
