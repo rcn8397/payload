@@ -1,0 +1,16 @@
+WebSites
+
+Openfec.org
+
+Tiny-fecc (forward erasure Corretion Codes)
+http://code.google.com/p/tiny-fecc/
+
+Error Correcting Codes Page
+
+http://www.eccpage.com/
+
+Matlab RFC6330 FEC Code
+http://www.mathworks.com/matlabcentral/fileexchange/40554-rfc6330-fec-code
+
+Benchmarks
+http://www1.icsi.berkeley.edu/~luby/erasure.html
