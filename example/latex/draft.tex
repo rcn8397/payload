@@ -62,6 +62,7 @@ message depends on how appropriate the code is in relation to the channel.\\
 
 
 \begin{example}
+\label{YES_or_NO}
 Suppose we are using an alphabet containing only two symbols, say 0 and 1 and we wish to
 send a message to a friend of either ``YES'' or ``NO''.  We first might consider encoding 1 for ``YES'' and
 0 for ``NO''; however, if the codeword 0 is sent and then altered by the channel to be received as 1, the
@@ -125,7 +126,7 @@ $$
 
 
 \begin{example}
-The error-correcting code in this example is a binary code of block length 5.
+The error-correcting code in Example \ref{YES_or_NO} is a binary code of block length 5.
 The distance between the codeword 00000 and the received vector 00110 is 2.  The distance between the same
 received vector and the codeword 11111 is 3.  Thus, 00000 is the nearest neighboring codeword.  The minimum
 distance of this code is 5.
@@ -143,7 +144,7 @@ also the sum of any two codewords must also be a codeword in $\mathbf{C}$.  We w
 definition that the distance $d$ is also easy to calculate for linear codes.\\
 
 \begin{definition}
-Let $V=F^n$.  For any vector $v=(v_1,v_2,\ldots,v_n)$  $V$ set
+Let $V=\mathbf{F}^n$.  For any vector $v=(v_1,v_2,\ldots,v_n)\in V$ set
 
 $$
 S=\left\{i|v_i\neq 0\right\}
@@ -161,8 +162,8 @@ is the minimum weight of $\mathbf{C}$.\\
 
 
 \begin{pf}
-Notice that in $F^n$, $d(v,w)=\mathbf{wt}(v - w)$.  Since $\mathbf{C}$ is a subspace $v-w\in \mathbf{C}$
-for any $v,w\in\mathbf{C}$.\\
+Notice that in $\mathbf{F}^n$, $d(v,w)=\mathbf{wt}(v - w)$.  Since $\mathbf{C}$ is a subspace
+$v-w\in \mathbf{C}$ for any $v,w\in\mathbf{C}$.\\
 \end{pf}
 
 \begin{example}\label{hamming}
@@ -191,7 +192,7 @@ vectors make up the rows of the 7 x 7 matrix that indicates which 4 points are n
 $l_2$, $l_3$, $l_4$ $l_5$, $l_6$, $l_7$)\\
 
 \begin{theorem}
-Let $\mathbf{C}$ be a code of minimum distance $d$.  If $d=2t+1$, then $\mathbf{C}$ can
+Let $\mathbf{C}$ be a code of minimum distance $d$.  If $d\geq2t+1$, then $\mathbf{C}$ can
 be used to correct up to $t$ errors.\\
 \end{theorem}
 
@@ -227,7 +228,7 @@ Incidence Matrix
 \vspace{15pt}
 
 \begin{definition}
-A code $\mathbf{C}$ is said to be a perfect t-error correcting code if any vector $v$ in
+A code $\mathbf{C}$ is said to be a perfect $t$-error correcting code if any vector $v$ in
 $\mathbf{F}^n$ can be corrected to a exactly one codeword in $\mathbf{C}$ should the distance between $v$ and
 the codeword be less than or equal to $t$.\\
 \end{definition}
@@ -269,9 +270,9 @@ Incidence Matrix
 
 \vspace{15pt}
 
-Figure \ref{biplane} for the nullspace of $\mathbf{C}$.  These three vectors may be used to make up the rows of
-what is known as a Parity Check Matrix $H$ for this Hamming code.  This matrix $H$ plays an important role in
-the decoding of this binary code (Hill, 1991).\\
+Figure \ref{biplane} for the nullspace of $\mathbf{C}$.  These three vectors may be used to make up
+the rows of what is known as a \emph{Parity Check Matrix} $H$ for this Hamming code.  This matrix
+$H$ plays an important role in the decoding of this binary code (Hill, 1991).\\
 
 Figure \ref{biplane} shows the geometry for the biplane of order 2 (Polster, 1998) and its associated incidence
 matrix.  This geometry is the compliment to the Fano plane.  Each circle represents a line in the geometry
