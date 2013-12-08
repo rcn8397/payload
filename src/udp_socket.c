@@ -7,6 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <glib.h>
+#include <stdlib.h>
 
 #include "udp_socket.h"
 
@@ -70,7 +71,6 @@ int UDP_ClientInit( const char *port, const char *ip )
         return -1;
     }
 }
-
 
 int UDP_send( char *buff, int size )
 {
@@ -213,3 +213,83 @@ int UDP_recv( char *buff, int *size )
         
     return 1;
 }
+
+int BetterUDP_send( char* buff, unsigned int msg_size )
+{
+  char* returnBuff = NULL;
+  unsigned int sequenceNum = 1;
+  unsigned int totalMsgs = 1;
+  int i = 0;
+
+  if( msg_size > 0 )
+  {
+    /* calculate the number of chunks to return */
+    if( msg_size > MSG_CHUNK_SIZE )
+       totalMsgs = ( ( msg_size / MSG_CHUNK_SIZE ) + ( ( msg_size % MSG_CHUNK_SIZE ) ? 1 : 0 ) );
+
+    fprintf( stdout, "totalMsgs: %d\n", totalMsgs ); fflush( stdout );
+
+    returnBuff = ( char* )malloc( sizeof( char ) * MSG_CHUNK_SIZE );
+
+    for( i = 0; i < totalMsgs; ++i, ++sequenceNum )
+    {
+      /* copy the seqence number into buffer */
+      memcpy( returnBuff, &sequenceNum, sizeof( int ) ); 
+      /* copy the total number of sequences into the buffer */
+      memcpy( returnBuff + SEQ_NUM_OFFSET, &totalMsgs, sizeof( int ) ); 
+      /* copy the msg data */
+      memcpy( returnBuff + TOTAL_SEQ_NUM_OFFSET, buff, DATA_SIZE ); 
+
+      fprintf( stdout, "sending msg of size %d, i: %d, sequenceNum: %d\n", 
+               MSG_CHUNK_SIZE, i, sequenceNum ); fflush( stdout );
+
+      UDP_send( returnBuff, MSG_CHUNK_SIZE );
+
+      memset( returnBuff, 0x0, MSG_CHUNK_SIZE );
+    } 
+  }
+  else
+  {
+    fprintf( stdout, "ERROR: Message size was %d in betterUDP_send()\n", msg_size );
+    fflush ( stdout );
+    return 0;
+  }
+
+  free( returnBuff );
+  return 1; 
+}
+
+char* BetterUDP_sendAll( char* buff, unsigned int msg_size )
+{
+  char* returnBuff = NULL;
+  unsigned int sequenceNum = 1;
+  unsigned int totalMsgs = 1;
+  int i = 0;
+
+  if( msg_size > 0 )
+  {
+    /* calculate the number of chunks to return */
+    if( msg_size > MSG_CHUNK_SIZE )
+       totalMsgs = ( ( msg_size / MSG_CHUNK_SIZE ) + ( ( msg_size % MSG_CHUNK_SIZE ) ? 1 : 0 ) );
+
+    returnBuff = ( char* )malloc( sizeof( char ) * ( MSG_CHUNK_SIZE * totalMsgs ) );
+
+    for( i = 0; i < totalMsgs; ++i, ++sequenceNum )
+    {
+      /* copy the seqence number into buffer */
+      memcpy( returnBuff, &sequenceNum, sizeof( int ) ); 
+      /* copy the total number of sequences into the buffer */
+      memcpy( returnBuff + SEQ_NUM_OFFSET, &totalMsgs, sizeof( int ) ); 
+      /* copy the msg data */
+      memcpy( returnBuff + TOTAL_SEQ_NUM_OFFSET, buff, DATA_SIZE ); 
+    } 
+  }
+  else
+  {
+    fprintf( stdout, "ERROR: Message size was %d in betterUDP_send()\n", msg_size );
+    fflush ( stdout );
+  }
+
+  return returnBuff; 
+}
+
