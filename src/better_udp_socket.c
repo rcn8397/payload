@@ -13,6 +13,7 @@
 #include "udp_socket.h"
 #include "better_udp_socket.h"
 #include "packets.h"
+#include "hamming.h"
 
 // temporary hack - store each bit of every byte of the in buffer into 
 //                  its own byte in the out buff.  
@@ -75,8 +76,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     // BILL TO DO: call calculate inner ecc function here!!!
     //             Just FYI, flag is actually 1 bit according to carson, using 1 byte
     //             to store it for ease of programming
-    char ecc_flag = 0; 
-    //int ecc_flag = eccInnerFlag( data );
+    char ecc_flag = eccInnerFlag( data );
 
     /* copy the seqence number into buffer */
     memcpy( sendBuff + SEQ_NUM_OFFSET, &sequenceNum, SEQ_NUM_SIZE ); 
