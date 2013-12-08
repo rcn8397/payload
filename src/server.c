@@ -11,7 +11,9 @@ void server( const char *address, const char *port )
     
     char buff[ MAXBUFFERLEN ];
     int size ;
-    UDP_recv( buff, &size );
+
+    while( 1 )
+        UDP_recv( buff, &size );
 
     UDP_close();
 
