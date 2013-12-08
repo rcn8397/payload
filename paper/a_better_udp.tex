@@ -1,29 +1,20 @@
 
-%% bare_jrnl.tex
+%% bare_conf.tex
 %% V1.3
 %% 2007/01/11
 %% by Michael Shell
-%% see http://www.michaelshell.org/
+%% See:
+%% http://www.michaelshell.org/
 %% for current contact information.
 %%
 %% This is a skeleton file demonstrating the use of IEEEtran.cls
-%% (requires IEEEtran.cls version 1.7 or later) with an IEEE journal paper.
+%% (requires IEEEtran.cls version 1.7 or later) with an IEEE conference paper.
 %%
 %% Support sites:
 %% http://www.michaelshell.org/tex/ieeetran/
 %% http://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/
 %% and
 %% http://www.ieee.org/
-
-
-
-% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
-% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
-% *** with production work. IEEE's font choices can trigger bugs that do  ***
-% *** not appear when using other class files.                            ***
-% The testflow support page is at:
-% http://www.michaelshell.org/tex/testflow/
-
 
 %%*************************************************************************
 %% Legal Notice:
@@ -52,6 +43,15 @@
 %%                    bare_conf.tex, bare_jrnl.tex, bare_jrnl_compsoc.tex
 %%*************************************************************************
 
+% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
+% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
+% *** with production work. IEEE's font choices can trigger bugs that do  ***
+% *** not appear when using other class files.                            ***
+% The testflow support page is at:
+% http://www.michaelshell.org/tex/testflow/
+
+
+
 % Note that the a4paper option is mainly intended so that authors in
 % countries using A4 can easily print to A4 and see how their papers will
 % look in print - the typesetting of the document will not typically be
@@ -63,11 +63,12 @@
 % should be used if it is desired that the figures are to be displayed in
 % draft mode.
 %
-\documentclass[journal]{IEEEtran}
+\documentclass[conference]{IEEEtran}
+% Add the compsoc option for Computer Society conferences.
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
 % manually specify the path to it like:
-% \documentclass[journal]{../sty/IEEEtran}
+% \documentclass[conference]{../sty/IEEEtran}
 
 
 
@@ -126,7 +127,7 @@
 % *** GRAPHICS RELATED PACKAGES ***
 %
 \ifCLASSINFOpdf
-   \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -186,6 +187,16 @@
 % does. amsmath.sty is already installed on most LaTeX systems. The latest
 % version and documentation can be obtained at:
 % http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
+
+
+
+% *** TIKZ PACKAGES
+%
+\usepackage[svgnames]{xcolor}
+\usepackage{tikz}
+\tikzstyle{none}=[inner sep=0pt]
+\tikzstyle{arrow}=[-latex,draw=Black,line width=0.75]
+\tikzstyle{simple}=[-,draw=Black]
 
 
 
@@ -320,48 +331,6 @@
 % not format its papers in such ways.
 
 
-%\ifCLASSOPTIONcaptionsoff
-%  \usepackage[nomarkers]{endfloat}
-% \let\MYoriglatexcaption\caption
-% \renewcommand{\caption}[2][\relax]{\MYoriglatexcaption[#2]{#2}}
-%\fi
-% endfloat.sty was written by James Darrell McCauley and Jeff Goldberg.
-% This package may be useful when used in conjunction with IEEEtran.cls'
-% captionsoff option. Some IEEE journals/societies require that submissions
-% have lists of figures/tables at the end of the paper and that
-% figures/tables without any captions are placed on a page by themselves at
-% the end of the document. If needed, the draftcls IEEEtran class option or
-% \CLASSINPUTbaselinestretch interface can be used to increase the line
-% spacing as well. Be sure and use the nomarkers option of endfloat to
-% prevent endfloat from "marking" where the figures would have been placed
-% in the text. The two hack lines of code above are a slight modification of
-% that suggested by in the endfloat docs (section 8.3.1) to ensure that
-% the full captions always appear in the list of figures/tables - even if
-% the user used the short optional argument of \caption[]{}.
-% IEEE papers do not typically make use of \caption[]'s optional argument,
-% so this should not be an issue. A similar trick can be used to disable
-% captions of packages such as subfig.sty that lack options to turn off
-% the subcaptions:
-% For subfig.sty:
-% \let\MYorigsubfloat\subfloat
-% \renewcommand{\subfloat}[2][\relax]{\MYorigsubfloat[]{#2}}
-% For subfigure.sty:
-% \let\MYorigsubfigure\subfigure
-% \renewcommand{\subfigure}[2][\relax]{\MYorigsubfigure[]{#2}}
-% However, the above trick will not work if both optional arguments of
-% the \subfloat/subfig command are used. Furthermore, there needs to be a
-% description of each subfigure *somewhere* and endfloat does not add
-% subfigure captions to its list of figures. Thus, the best approach is to
-% avoid the use of subfigure captions (many IEEE journals avoid them anyway)
-% and instead reference/explain all the subfigures within the main caption.
-% The latest version of endfloat.sty and its documentation can obtained at:
-% http://www.ctan.org/tex-archive/macros/latex/contrib/endfloat/
-%
-% The IEEEtran \ifCLASSOPTIONcaptionsoff conditional can also be used
-% later in the document, say, to conditionally put the References on a 
-% page by themselves.
-
-
 
 
 
@@ -385,7 +354,6 @@
 % (Unless specifically asked to do so by the journal or conference you plan
 % to submit to, of course. )
 
-
 % Thms
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{theorem}[thm]{Theorem}
@@ -407,6 +375,7 @@
 
 
 
+
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -416,64 +385,64 @@
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
 \title{Topic 1: A Better UDP}
-%
-%
-% author names and IEEE memberships
-% note positions of commas and nonbreaking spaces ( ~ ) LaTeX will not break
-% a structure at a ~ so this keeps an author's name from being broken across
-% two lines.
-% use \thanks{} to gain access to the first footnote area
-% a separate \thanks must be used for each paragraph as LaTeX2e's \thanks
-% was not built to handle multiple paragraphs
-%
 
-\author{Carson~Clanton,~\IEEEmembership{Member,~Phi Mu Epsilon,}
-        Kevin~Hayes,
-        William~Hunter,
-        Richard~Meth,
-        and~Ryan~Nordeen}% <-this % stops a space
-%\thanks{M. O'Dell is with the Department
-%of Computer Science and Engineering, The University of Texas at Arlington, Arlington,
-%TX, 79019 USA e-mail: (see http://ranger.uta.edu/~odell).}}% <-this % stops a space
-% note the % following the last \IEEEmembership and also \thanks - 
-% these prevent an unwanted space from occurring between the last author name
-% and the end of the author line. i.e., if you had this:
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{\IEEEauthorblockN{Carson Clanton}
+\IEEEauthorblockA{\small Department of Computer\\Science and Engineering\\
+The University of Texas\\at Arlington\\
+Arlington, Texas 76019\\
+Email: clanton@uta.edu}
+\and
+\IEEEauthorblockN{Kevin Hayes}
+\IEEEauthorblockA{\small Department of Computer\\Science and Engineering\\
+The University of Texas\\at Arlington\\
+Arlington, Texas 76019\\
+Email: @mavs.uta.edu}
+\and
+\IEEEauthorblockN{William Hunter}
+\IEEEauthorblockA{\small Department of Computer\\Science and Engineering\\
+The University of Texas\\at Arlington\\
+Arlington, Texas 76019\\
+Email: @mavs.uta.edu}
+\and
+\IEEEauthorblockN{Richard Meth}
+\IEEEauthorblockA{\small Department of Computer\\Science and Engineering\\
+The University of Texas\\at Arlington\\
+Arlington, Texas 76019\\
+Email: @mavs.uta.edu}
+\and
+\IEEEauthorblockN{Ryan Nordeen}
+\IEEEauthorblockA{\small Department of Computer\\Science and Engineering\\
+The University of Texas\\at Arlington\\
+Arlington, Texas 76019\\
+Email: @mavs.uta.edu}
+}
+
+% conference papers do not typically use \thanks and this command
+% is locked out in conference mode. If really needed, such as for
+% the acknowledgment of grants, issue a \IEEEoverridecommandlockouts
+% after \documentclass
+
+% for over three affiliations, or if they all won't fit within the width
+% of the page, use this alternative format:
 % 
-% \author{....lastname \thanks{...} \thanks{...} }
-%                     ^------------^------------^----Do not want these spaces!
-%
-% a space would be appended to the last name and could cause every name on that
-% line to be shifted left slightly. This is one of those "LaTeX things". For
-% instance, "\textbf{A} \textbf{B}" will typeset as "A B" not "AB". To get
-% "AB" then you have to do: "\textbf{A}\textbf{B}"
-% \thanks is no different in this regard, so shield the last } of each \thanks
-% that ends a line with a % and do not let a space in before the next \thanks.
-% Spaces after \IEEEmembership other than the last one are OK (and needed) as
-% you are supposed to have spaces between the names. For what it is worth,
-% this is a minor point as most people would not even notice if the said evil
-% space somehow managed to creep in.
+%\author{\IEEEauthorblockN{Michael Shell\IEEEauthorrefmark{1},
+%Homer Simpson\IEEEauthorrefmark{2},
+%James Kirk\IEEEauthorrefmark{3}, 
+%Montgomery Scott\IEEEauthorrefmark{3} and
+%Eldon Tyrell\IEEEauthorrefmark{4}}
+%\IEEEauthorblockA{\IEEEauthorrefmark{1}School of Electrical and Computer Engineering\\
+%Georgia Institute of Technology,
+%Atlanta, Georgia 30332--0250\\ Email: see http://www.michaelshell.org/contact.html}
+%\IEEEauthorblockA{\IEEEauthorrefmark{2}Twentieth Century Fox, Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\IEEEauthorblockA{\IEEEauthorrefmark{3}Starfleet Academy, San Francisco, California 96678-2391\\
+%Telephone: (800) 555--1212, Fax: (888) 555--1212}
+%\IEEEauthorblockA{\IEEEauthorrefmark{4}Tyrell Inc., 123 Replicant Street, Los Angeles, California 90210--4321}}
 
-
-
-% The paper headers
-%\markboth{Journal of \LaTeX\ Class Files,~Vol.~6, No.~1, January~2007}%
-%{Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for Journals}
-% The only time the second header will appear is for the odd numbered pages
-% after the title page when using the twoside option.
-% 
-% *** Note that you probably will NOT want to include the author's ***
-% *** name in the headers of peer review papers.                   ***
-% You can use \ifCLASSOPTIONpeerreview for conditional compilation here if
-% you desire.
-
-
-
-
-% If you want to put a publisher's ID mark on the page you can do it like
-% this:
-%\IEEEpubid{0000--0000/00\$00.00~\copyright~2007 IEEE}
-% Remember, if you use this you must call \IEEEpubidadjcol in the second
-% column for its text to clear the IEEEpubid mark.
 
 
 
@@ -498,17 +467,12 @@ Code chosen and the selection of its associcated redundancy parameters.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
-% if the journal you are submitting to favors bold math in the abstract,
+% if the conference you are submitting to favors bold math in the abstract,
 % then you can use LaTeX's standard command \boldmath at the very start
-% of the abstract to achieve this. Many IEEE journals frown on math
-% in the abstract anyway.
+% of the abstract to achieve this. Many IEEE journals/conferences frown on
+% math in the abstract anyway.
 
-% Note that keywords are not normally used for peerreview papers.
-\begin{IEEEkeywords}
-UDP, Reliable, Error-Correcting Codes, Sequence Numbers.
-\end{IEEEkeywords}
-
-
+% no keywords
 
 
 
@@ -526,22 +490,8 @@ UDP, Reliable, Error-Correcting Codes, Sequence Numbers.
 
 
 \section{Introduction}
-% The very first letter is a 2 line initial drop letter followed
-% by the rest of the first word in caps.
-% 
-% form to use if the first word consists of a single letter:
-% \IEEEPARstart{A}{demo} file is ....
-% 
-% form to use if you need the single drop letter followed by
-% normal text (unknown if ever used by IEEE):
-% \IEEEPARstart{A}{}demo file is ....
-% 
-% Some journals put the first two words in caps:
-% \IEEEPARstart{T}{his demo} file is ....
-% 
-% Here we have the typical use of a "T" for an initial drop letter
-% and "HIS" in caps to complete the first word.
-\IEEEPARstart{W}{hen} a software engineer begins designing a
+% no \IEEEPARstart
+When a software engineer begins designing a
 network application, he or she has to make a decision between
 two transport layer options, TCP or UDP.  There are advantages
 and disadvantages to both.  With UDP comes nimbleness and low
@@ -579,11 +529,6 @@ an unreliable, and potentially noisy, channel, making it
 a good candidate for a ECC solution.
 
 
-
-%\hfill mds
- 
-%\hfill January 11, 2007
-
 \subsection{Error-Correcting Codes}
 Below in Figure \ref{comm_link} is a schematic of the general
 communication link for sending messages.  Here the message is
@@ -599,16 +544,107 @@ original message and passed on to the \emph{receiver}.
 The degree of resemblance to the original message depends
 on how appropriate the code is in relation to the channel.\\
 
-% needed in second column of first page if using \IEEEpubid
-%\IEEEpubidadjcol
 
-\begin{figure}[!t]
-%\begin{figure}[h!]
-\centering
-\includegraphics[scale=0.5]{PNGs/figure1_1_comm_link}
-\caption{Schematic of a general communication link}
-\label{comm_link}
-\end{figure}
+
+
+
+%%%%************************************************************************%%%%
+%%%%                                                                        %%%%
+%%%%    COMMUNICATION LINK DIAGRAM - BEGIN                                  %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+                                                                            %%%%
+\begin{figure}[!t]                                                          %%%%
+\centering                                                                  %%%%
+\begin{tikzpicture}[scale=0.5]                                              %%%%
+ \node [style=none] (0) at (-3, 1) {};                                      %%%%
+ \node [style=none] (1) at (-5, 1) {};                                      %%%%
+ \node [style=none] (2) at (-3, -0) {};                                     %%%%
+ \node [style=none] (3) at (-5, -0) {};                                     %%%%
+ \node [style=none] (4) at (-4, 0.5)     {\scriptsize source};              %%%%
+ \node [style=none] (5) at (-3, 0.5) {};                                    %%%%
+ \node [style=none] (6) at (-5, 0.5) {};                                    %%%%
+ \node [style=none] (7) at (-4, 1) {};                                      %%%%
+ \node [style=none] (8) at (-4, -0) {};                                     %%%%
+ \node [style=none] (9) at (-5, -2.5) {};                                   %%%%
+ \node [style=none] (10) at (-3, -1.5) {};                                  %%%%
+ \node [style=none] (11) at (-5, -2) {};                                    %%%%
+ \node [style=none] (12) at (-4, -2.5) {};                                  %%%%
+ \node [style=none] (13) at (-5, -1.5) {};                                  %%%%
+ \node [style=none] (14) at (-4, -2)     {\scriptsize encoder};             %%%%
+ \node [style=none] (15) at (-4, -1.5) {};                                  %%%%
+ \node [style=none] (16) at (-3, -2.5) {};                                  %%%%
+ \node [style=none] (17) at (-3, -2) {};                                    %%%%
+ \node [style=none] (18) at (1, -2)      {\scriptsize channel};             %%%%
+ \node [style=none] (19) at (2, -2) {};                                     %%%%
+ \node [style=none] (20) at (2, -2.5) {};                                   %%%%
+ \node [style=none] (21) at (0, -2) {};                                     %%%%
+ \node [style=none] (22) at (0, -2.5) {};                                   %%%%
+ \node [style=none] (23) at (1, -2.5) {};                                   %%%%
+ \node [style=none] (24) at (0, -1.5) {};                                   %%%%
+ \node [style=none] (25) at (2, -1.5) {};                                   %%%%
+ \node [style=none] (26) at (1, -1.5) {};                                   %%%%
+ \node [style=none] (27) at (6, -2)      {\scriptsize decoder};             %%%%
+ \node [style=none] (28) at (7, -1.5) {};                                   %%%%
+ \node [style=none] (29) at (6, -1.5) {};                                   %%%%
+ \node [style=none] (30) at (7, -2) {};                                     %%%%
+ \node [style=none] (31) at (7, -2.5) {};                                   %%%%
+ \node [style=none] (32) at (5, -2) {};                                     %%%%
+ \node [style=none] (33) at (5, -2.5) {};                                   %%%%
+ \node [style=none] (34) at (5, -1.5) {};                                   %%%%
+ \node [style=none] (35) at (6, -2.5) {};                                   %%%%
+ \node [style=none] (36) at (5, -5) {};                                     %%%%
+ \node [style=none] (37) at (6, -4.5)    {\scriptsize decoder};             %%%%
+ \node [style=none] (38) at (7, -5) {};                                     %%%%
+ \node [style=none] (39) at (7, -4.5) {};                                   %%%%
+ \node [style=none] (40) at (7, -4) {};                                     %%%%
+ \node [style=none] (41) at (5, -4.5) {};                                   %%%%
+ \node [style=none] (42) at (6, -4) {};                                     %%%%
+ \node [style=none] (43) at (5, -4) {};                                     %%%%
+ \node [style=none] (44) at (6, -5) {};                                     %%%%
+ \node [style=none] (45) at (-5, -0.75)  {\scriptsize message};             %%%%
+ \node [style=none] (46) at (-1.5, -1.5) {\scriptsize codeword};            %%%%
+ \node [style=none] (47) at (3.5, -1)    {\scriptsize received};            %%%%
+ \node [style=none] (48) at (3.5, -1.5)  {\scriptsize vector};              %%%%
+ \node [style=none] (49) at (7, -3)      {\scriptsize decoded};             %%%%
+ \node [style=none] (50) at (7, -3.5)    {\scriptsize message};             %%%%
+ \draw (1.center) to (3.center);                                            %%%%
+ \draw (1.center) to (0.center);                                            %%%%
+ \draw (3.center) to (2.center);                                            %%%%
+ \draw (2.center) to (0.center);                                            %%%%
+ \draw (13.center) to (9.center);                                           %%%%
+ \draw (13.center) to (10.center);                                          %%%%
+ \draw (9.center) to (16.center);                                           %%%%
+ \draw (16.center) to (10.center);                                          %%%%
+ \draw [style=arrow] (8.center) to (15.center);                             %%%%
+ \draw (24.center) to (22.center);                                          %%%%
+ \draw (24.center) to (25.center);                                          %%%%
+ \draw (22.center) to (20.center);                                          %%%%
+ \draw (20.center) to (25.center);                                          %%%%
+ \draw [style=arrow] (17.center) to (21.center);                            %%%%
+ \draw (34.center) to (33.center);                                          %%%%
+ \draw (34.center) to (28.center);                                          %%%%
+ \draw (33.center) to (31.center);                                          %%%%
+ \draw (31.center) to (28.center);                                          %%%%
+ \draw [style=arrow] (19.center) to (32.center);                            %%%%
+ \draw (43.center) to (36.center);                                          %%%%
+ \draw (43.center) to (40.center);                                          %%%%
+ \draw (36.center) to (38.center);                                          %%%%
+ \draw (38.center) to (40.center);                                          %%%%
+ \draw [style=arrow] (35.center) to (42.center);                            %%%%
+\end{tikzpicture}                                                           %%%%
+                                                                            %%%%
+\caption{Schematic of a general communication link}                         %%%%
+\label{comm_link}                                                           %%%%
+\end{figure}                                                                %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+%%%%    COMMUNICATION LINK DIAGRAM  - END                                   %%%%
+%%%%                                                                        %%%%
+%%%%************************************************************************%%%%
+
+
+
 
 
 \begin{example}
@@ -618,10 +654,10 @@ say 0 and 1 and we wish to send a message to a friend of either
 ``YES'' or ``NO''.  We first might consider encoding 1 for
 ``YES'' and 0 for ``NO''; however, if the codeword 0 is sent
 and then altered by the channel to be received as 1, the
-decoder will incorrectly pass the message ÒYESÓ to the receiver.
+decoder will incorrectly pass the message ``YES'' to the receiver.
 One way of improving the situation is to add redundancy by
 repeating the symbol.  For instance, we might encode ``YES''
-as the codeword 11 and ``NO'' as 00.  Now if ÒNOÓ is sent,
+as the codeword 11 and ``NO'' as 00.  Now if ``NO'' is sent,
 two errors would have to occur before the decoder returns
 an incorrect message.  If one error occurs then the received
 vector will either be 10 or 01, neither of which is a codeword.
@@ -638,8 +674,304 @@ one originally sent and hence is correctly decoded as ``NO''.
 \end{example}
 
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+
+
+%\begin{assumption}
+%Implicit in our example are two assumptions.  First, we are
+%assuming that each symbol is equally likely to occur.  Second,
+%the probability of an error is less than $1/2$. These are
+%important assumptions to be aware as they will serve as
+%guiding principles in the remainder of this paper.
+%\end{assumption}
+
+\begin{definition}
+Let $\mathbf{F}$ be a finite set, or {\bf alphabet}, of $q$
+elements.  A $q$-{\bf ary code} $\mathbf{C}$ is a set of
+finite sequences of symbols of $\mathbf{F}$, called {\bf codewords}
+and written $x_1x_2\cdots x_n$, or $(x_1,x_2,\ldots,x_n)$,
+where $x_i\in \mathbf{F}$ for $i = 1,\ldots,n$. If all the
+sequences have the same length $n$, then $\mathbf{C}$ is a
+{\bf block code} of {\bf block length} $n$.
+\end{definition}
+
+Given an alphabet $\mathbf{F}$, it is consistent with
+terminology for vector spaces when $\mathbf{F}$ is a
+field to denote the set of all sequences of length $n$
+of elements of $\mathbf{F}$ by $\mathbf{F}^n$ and to
+call these sequences vectors.  The member of $\mathbf{F}$
+at the $i$th position of a vector is known as the coordinate
+at $i$.
+
+
+
+\begin{definition}
+Let $v=(v_1,v_2,\ldots,v_n)$ and $w=(w_1,w_2,\ldots,w_n)$ be
+two vectors in $\mathbf{F}^n$.  The {\bf Hamming distance},
+$d(v,w)$, between $v$ and $w$ is the number of coordinate
+places in which they differ:
+$$
+d(v,w)=\{i|v_i\neq w_i \}
+$$
+
+We will usually refer to the Hamming distance as simply the
+{\bf distance} between two vectors.
+\end{definition}
+
+{\bf Nearest-neighbor decoding} is a method in which the
+received vector is translated as the codeword of smallest
+distance, whenever it is uniquely determined.  This method
+maximizes the likelihood of correcting errors provide the
+two assumptions mentioned above hold (i.e. probability of
+an error $<1/2$ and each symbol is equally likely to be
+transmitted).
+
+\begin{definition}
+The {\bf minimum distance} $d(\mathbf{C})$ of a code
+$\mathbf{C}$ is the smallest of the distances between
+distinct codewords; i.e.
+$$
+d(\mathbf{C}) = \min\{d(v,w)|v,w\in\mathbf{C},v\neq w\}
+$$
+\end{definition}
+
+
+\begin{example}
+The error-correcting code in Example \ref{YES_or_NO} is
+a binary code of block length 5. The distance between
+the codeword 00000 and the received vector 00110 is 2.
+The distance between the same received vector and the
+codeword 11111 is 3.  Thus, 00000 is the nearest neighboring
+codeword.  The minimum distance of this code is 5.
+\end{example}
+
+\begin{definition}
+A code $\mathbf{C}$ over $\mathbf{F}$ of length $n$ is
+{\bf linear} if $\mathbf{C}$ is a subspace of the vector
+space $V=\mathbf{F}^n$.  If $\dim(\mathbf{C})=k$ and
+$d(\mathbf{C})=d$, then we write $[n,k,d]$ for the $q$-ary
+code $\mathbf{C}$; if the minimum distance is not specified
+we simply write $[n,k]$. The {\bf information rate} is $k/n$
+and the {\bf redundancy} is $n-k$.  
+\end{definition}
+
+Since $\mathbf{C}$ is a subspace, it follows that the
+{\bf all-zero} vector must be a codeword in $\mathbf{C}$
+also the sum of any two codewords must also be a codeword
+in $\mathbf{C}$.  We will also see after the next
+definition that the distance $d$ is also easy to
+calculate for linear codes.
+
+\begin{definition}
+Let $V=\mathbf{F}^n$.  For any vector $v=(v_1,v_2,\ldots,v_n)\in V$
+set
+$$
+S=\left\{i|v_i\neq 0\right\}
+$$
+Then $S$ is called the support of $v$ and the weight of $v$ is
+$\left|S\right|$.  The {\bf minimum weight} of a code is the
+minimum of the weights of the nonzero codewords.
+\end{definition}
+
+
+\begin{example}\label{hamming}
+Listed below are all 16 codewords in the linear $[7,4,3]$
+binary code.  They are listed in order of increasing weight.\\
+
+\begin{center}
+ \begin{tabular}{cccc}
+  0000000 & 0111000 & 1000111 & 0101101\\
+  1100100 & 0001110 & 1101010 & 0110110\\
+  1010010 & 0010101 & 1110001 & 0011011\\
+  1001001 & 0100011 & 1011100 & 1111111\\
+ \end{tabular}
+\end{center}
+
+Notice that the minimum weight is 3.  By Theorem 1.1 it
+follows that $d(\mathbf{C}) = 3$.  It can be shown
+that these 16 codewords form a subspace of $\mathbf{F}^7$
+with basis $\{(1,0,0,0,1,1,1)$, $(0,1,0,0,0,1,1)$, 
+$(0,0,1,0,1,0,1)$, $(0,0,0,1,1,1,0)\}$. Thus 
+$\dim(\mathbf{C})=4$ as conveyed in the notation and the
+redundancy is 3 since $n-k=7-4 = 3$.
+\end{example}
+
+
+
+\begin{theorem}
+Let $\mathbf{C}$ be a code of minimum distance $d$.  If
+$d\geq2t+1$, then $\mathbf{C}$ can be used to correct up
+to $t$ errors.
+\end{theorem}
+
+%\subsubsection{Subsubsection Heading Here}
+%Subsubsection text here.
+
+\section{Design}
+A Better UDP is ``wedged in'' as another IP stack
+layer sitting between the transport layer and the application
+layer, see Figure \ref{ip_stack}.  We did not modify any
+kernel source and A Better UDP is not a standard yet, so
+to use it an application developer or software engineer
+will have to include this functionality as a library.
+Instead of using a socket library to interface
+with the transport layer, the engineer will link with
+A Better UDP library to interface with the protocol stack
+below the application layer. Henceforth we will refer
+to A Better UDP as BUDP.
+
+
+
+%%%%************************************************************************%%%%
+%%%%                                                                        %%%%
+%%%%    IP STACK DIAGRAM - BEGIN                                            %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+\begin{figure}[h!]                                                          %%%%
+\centering                                                                  %%%%
+\begin{tikzpicture}[scale=0.60]                                             %%%%
+  \node [style=none] (0) at (-7, 3) {};                                     %%%%
+  \node [style=none] (1) at (-4, 3) {};                                     %%%%
+  \node [style=none] (2) at (-7, 2) {};                                     %%%%
+  \node [style=none] (3) at (-4, 2) {};                                     %%%%
+  \node [style=none] (4) at (-5.5, 2.5) {\small Application};               %%%%
+  \node [style=none] (5) at (-7, 1.5) {};                                   %%%%
+  \node [style=none] (6) at (-4, 1.5) {};                                   %%%%
+  \node [style=none] (7) at (-4, 0.5) {};                                   %%%%
+  \node [style=none] (8) at (-5.5, 1) {\small Transport};                   %%%%
+  \node [style=none] (9) at (-7, 0.5) {};                                   %%%%
+  \node [style=none] (10) at (-4, 0.5) {};                                  %%%%
+  \node [style=none] (11) at (-7, 0.5) {};                                  %%%%
+  \node [style=none] (12) at (-5.5, -0) {\small Network};                   %%%%
+  \node [style=none] (13) at (-7, -0.5) {};                                 %%%%
+  \node [style=none] (14) at (-4, -0.5) {};                                 %%%%
+  \node [style=none] (15) at (-4, -0.5) {};                                 %%%%
+  \node [style=none] (16) at (-7, -0.5) {};                                 %%%%
+  \node [style=none] (17) at (-5.5, -1) {\small Link};                      %%%%
+  \node [style=none] (18) at (-7, -1.5) {};                                 %%%%
+  \node [style=none] (19) at (-4, -1.5) {};                                 %%%%
+  \node [style=none] (20) at (-4, -1.5) {};                                 %%%%
+  \node [style=none] (21) at (-7, -1.5) {};                                 %%%%
+  \node [style=none] (22) at (-5.5, -2) {\small Physical};                  %%%%
+  \node [style=none] (23) at (-7, -2.5) {};                                 %%%%
+  \node [style=none] (24) at (-4, -2.5) {};                                 %%%%
+  \node [style=none] (25) at (-6.5, 2) {};                                  %%%%
+  \node [style=none] (26) at (-4.5, 2) {};                                  %%%%
+  \node [style=none] (27) at (-6.5, 1.5) {};                                %%%%
+  \node [style=none] (28) at (-4.5, 1.5) {};                                %%%%
+  \node [style=none] (29) at (-5.5, 1.75) {\scriptsize Better UDP};         %%%%
+  \draw [style=simple] (0.center) to (1.center);                            %%%%
+  \draw [style=simple] (0.center) to (2.center);                            %%%%
+  \draw [style=simple] (2.center) to (3.center);                            %%%%
+  \draw [style=simple] (3.center) to (1.center);                            %%%%
+  \draw [style=simple] (5.center) to (6.center);                            %%%%
+  \draw [style=simple] (5.center) to (9.center);                            %%%%
+  \draw [style=simple] (9.center) to (7.center);                            %%%%
+  \draw [style=simple] (7.center) to (6.center);                            %%%%
+  \draw [style=simple] (11.center) to (10.center);                          %%%%
+  \draw [style=simple] (11.center) to (13.center);                          %%%%
+  \draw [style=simple] (13.center) to (14.center);                          %%%%
+  \draw [style=simple] (14.center) to (10.center);                          %%%%
+  \draw [style=simple] (16.center) to (15.center);                          %%%%
+  \draw [style=simple] (16.center) to (18.center);                          %%%%
+  \draw [style=simple] (18.center) to (19.center);                          %%%%
+  \draw [style=simple] (19.center) to (15.center);                          %%%%
+  \draw [style=simple] (21.center) to (20.center);                          %%%%
+  \draw [style=simple] (21.center) to (23.center);                          %%%%
+  \draw [style=simple] (23.center) to (24.center);                          %%%%
+  \draw [style=simple] (24.center) to (20.center);                          %%%%
+  \draw [style=simple] (25.center) to (26.center);                          %%%%
+  \draw [style=simple] (26.center) to (28.center);                          %%%%
+  \draw [style=simple] (28.center) to (27.center);                          %%%%
+  \draw [style=simple] (27.center) to (25.center);                          %%%%
+\end{tikzpicture}                                                           %%%%
+\caption{Five-layer Internet Protocol Stack with a Better UDP Wedged in}    %%%%
+\label{ip_stack}                                                            %%%%
+\end{figure}                                                                %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+%%%%    IP STACK DIAGRAM - END                                              %%%%
+%%%%                                                                        %%%%
+%%%%************************************************************************%%%%
+
+
+
+
+
+Messages, from the application layer, are passed to
+BUDP, where, currently, four at a time are buffered,
+assigned sequence numbers, encoded to produced an ECC,
+and then sent as datagrams via standard UDP to their
+destination address. At the destination, the datagrams
+are collected and stored in an accumulation buffer,
+where they are placed in their proper sequence, see
+Figure \ref{overview_schematic}. One of three conditions,
+prompts their delivery to the application layer at the
+destination:
+
+\begin{enumerate}
+ \item All four datagrams are received intact.
+ \item Three datagrams are received as well as
+       the ECC, intact.
+ \item A countdown timer reaches zero.\\
+\end{enumerate}
+
+The first of these conditions is obvious, while
+the other two require further explanation.  It
+is easier to explain 3) first, so we will do
+that now.  As stated previously in our introduction,
+we don't intend to rewrite TCP and we would like
+to keep our UDP implementation connectionless,
+so instead of requesting retransmission of
+missing datagrams, for example, when the one of
+the first two conditions above are not met, our
+implementation will simply give what it has to
+the application layer at the destination.  Our
+justification for doing this is that it is what
+a standard UDP implementation would do.  Actually,
+a standard implementation of UDP would do less,
+because our implementation will at least give the
+application layer in-order messages.
+
+%there is one benefit our implementation would
+%have over the standard and it is that those
+%datagrams that are passed up to the destination
+%application layer are in order.
+
+%%%%************************************************************************%%%%
+%%%%                                                                        %%%%
+%%%%    A BETTER UDP OVERVIEW SCHEMATIC - BEGIN                             %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+\begin{figure}[h!]                                                          %%%%
+\centering                                                                  %%%%
+  \includegraphics[scale=0.125]{PNGs/System_Schematic-Overview}              %%%%
+\caption{A Better UDP Overview Schematic}                                   %%%%
+\label{overview_schematic}                                                  %%%%
+\end{figure}                                                                %%%%
+%%%%                                                                        %%%%
+%%%%                                                                        %%%%
+%%%%    A BETTER UDP OVERVIEW SCHEMATIC - END                               %%%%
+%%%%                                                                        %%%%
+%%%%************************************************************************%%%%
+
+
+The ECC is also sent in follow-on packets to the
+destination.  They also contain sequence numbers,
+which are a continuation of the sequence numbers
+assigned to data packets.
+The purpose of buffering is to support the process
+of encoding the ECC.
+
+
+
+For the purposes of prototyping our design of a better
+UDP, we will use the single error-correcting Hamming
+code introduced above.  It is quiet limited in what it
+can be used for, since it only corrects one error, because
+for our purposes it will do just fine.
+
+
+%Subsubsection text here.
 
 
 % An example of a floating figure using the graphicx package.
@@ -719,10 +1051,10 @@ Subsubsection text here.
 
 % Note that IEEE does not put floats in the very first column - or typically
 % anywhere on the first page for that matter. Also, in-text middle ("here")
-% positioning is not used. Most IEEE journals use top floats exclusively.
-% Note that, LaTeX2e, unlike IEEE journals, places footnotes above bottom
-% floats. This can be corrected via the \fnbelowfloat command of the
-% stfloats package.
+% positioning is not used. Most IEEE journals/conferences use top floats
+% exclusively. Note that, LaTeX2e, unlike IEEE journals/conferences, places
+% footnotes above bottom floats. This can be corrected via the \fnbelowfloat
+% command of the stfloats package.
 
 
 
@@ -732,30 +1064,7 @@ The conclusion goes here.
 
 
 
-
-% if have a single appendix:
-%\appendix[Proof of the Zonklar Equations]
-% or
-%\appendix  % for no appendix heading
-% do not use \section anymore after \appendix, only \section*
-% is possibly needed
-
-% use appendices with more than one appendix
-% then use \section to start each appendix
-% you must declare a \section before using any
-% \subsection or using \label (\appendices by itself
-% starts a section numbered zero.)
-%
-
-
-\appendices
-\section{Proof of the First Zonklar Equation}
-Appendix one text goes here.
-
-% you can choose not to have a title for an appendix
-% if you want by leaving the argument blank
-\section{}
-Appendix two text goes here.
+% conference papers do not normally have an appendix
 
 
 % use section* for acknowledgement
@@ -765,11 +1074,6 @@ Appendix two text goes here.
 The authors would like to thank...
 
 
-% Can use something like this to put references on a page
-% by themselves when using endfloat and the captionsoff option.
-\ifCLASSOPTIONcaptionsoff
-  \newpage
-\fi
 
 
 
@@ -803,45 +1107,6 @@ H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
 
 \end{thebibliography}
 
-% biography section
-% 
-% If you have an EPS/PDF photo (graphicx package needed) extra braces are
-% needed around the contents of the optional argument to biography to prevent
-% the LaTeX parser from getting confused when it sees the complicated
-% \includegraphics command within an optional argument. (You could create
-% your own custom macro containing the \includegraphics command to make things
-% simpler here.)
-%\begin{biography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
-% or if you just want to reserve a space for a photo:
-
-\begin{IEEEbiography}{Michael Shell}
-Biography text here.
-\end{IEEEbiography}
-
-% if you will not have a photo at all:
-\begin{IEEEbiographynophoto}{John Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-
-% insert where needed to balance the two columns on the last page with
-% biographies
-%\newpage
-
-\begin{IEEEbiographynophoto}{Jane Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-
-% You can push biographies down or up by placing
-% a \vfill before or after them. The appropriate
-% use of \vfill depends on what kind of text is
-% on the last page and whether or not the columns
-% are being equalized.
-
-%\vfill
-
-% Can be used to pull up biographies so that the bottom of the last one
-% is flush with the other column.
-%\enlargethispage{-5in}
 
 
 
