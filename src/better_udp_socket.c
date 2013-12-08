@@ -98,12 +98,9 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     //     modify the data pointer with the ecc data and return true.  Returning
     //     false means all you did was record data and not change data.  If false then
     //     we want to increment our i so we move to the next piece of actual data.
-    //if( !eccAddMsg( &data, DATA_SIZE ) )
+    if( !eccAddMsg( &data, DATA_SIZE ) )
       i++;
 
-    // BILL TO DO: call calculate inner ecc function here!!!
-    //             Just FYI, flag is actually 1 bit according to carson, using 1 byte
-    //             to store it for ease of programming
     char ecc_flag = eccInnerFlag( data );
 
     /* copy the seqence number into buffer */
