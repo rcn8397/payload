@@ -212,8 +212,8 @@ int UDP_recv( char *buff, int *size )
         if( ip && (*size > 0 ) )
         {
             buff[ *size ] = '\0';
-            printf( "UDP_recv: got packet from %s\n", ip );
-            printf( "UDP_recv: %d bytes received\n", *size );
+            //printf( "UDP_recv: got packet from %s\n", ip );
+            //printf( "UDP_recv: %d bytes received\n", *size );
             //printf( "UDP_recv: msg: %s \n", buff );
             return 0;
         }

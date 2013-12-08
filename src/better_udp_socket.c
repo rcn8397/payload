@@ -19,6 +19,7 @@
 //                  its own byte in the out buff.  
 //                    sizeof(out_buff) == 8*sizeof(in_buff)
 //                  bit will be stored little endian
+// \return size of out buffer
 int toBitStream( char** out_buff, char** in_buff, int in_size )
 {
   *out_buff = (char*)malloc( sizeof(char)*in_size*8 );
@@ -28,6 +29,28 @@ int toBitStream( char** out_buff, char** in_buff, int in_size )
     for( j=0; j<8; j++ )
       (*out_buff)[i*8+j] = ( (*in_buff)[i] >> j ) & 0x1;
   return in_size*8;
+}
+
+// inverse of toBitStream() - takes a buffer that contains byte data where
+//              only the first bit of every byte contains data.  Pack those
+//              bits into a new byte buffer. Bits are stored little endian.
+//              New buffer will have the property:
+//                 sizeof(out_buff)*8 == sizeof(in_buff)
+// \return size of out buffer
+int fromBitStream( char** in_buff, int in_size )
+{
+  int size = in_size/8 + (in_size%8 ? 1 : 0 );
+  char* out_buff = (char*)malloc( sizeof(char)*size );
+
+  int i,j;
+  for( i=0; i<size; i++ )
+    for( j=0; j<8; j++ )
+      if( i*8+j < in_size )
+        (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+
+  memcpy( *in_buff, out_buff, size );
+  (*in_buff)[size] = 0 ;
+  return size;
 }
 
 int BetterUDP_send( char* buff, unsigned int msg_size )
@@ -49,6 +72,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   //
   char* buff_mod;
   msg_size = toBitStream( &buff_mod, &buff, msg_size );
+  free( buff_mod );
   buff = buff_mod;
 
   /* calculate the number of chunks to return */
@@ -59,6 +83,10 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
 
   totalSize = msg_size;
 
+  // We have 3 ecc messages for every 4 data messages.  
+  // CARSON TODO: if we have less than 4 data packets, how many ecc packets do we need?
+  // BILL TODO: comment the second part of this back in once eccAddMsg() below is implemented
+  int maxSeqNum = totalMsgs ;//+ (totalMsgs/4)*3 ;
 
   while( i < totalMsgs )
   {
@@ -82,7 +110,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     memcpy( sendBuff + SEQ_NUM_OFFSET, &sequenceNum, SEQ_NUM_SIZE ); 
 
     /* copy the total number of sequences into the buffer */
-    memcpy( sendBuff + SEQ_TOTAL_NUM_OFFSET, &totalMsgs, SEQ_TOTAL_NUM_SIZE ); 
+    memcpy( sendBuff + SEQ_TOTAL_NUM_OFFSET, &maxSeqNum, SEQ_TOTAL_NUM_SIZE ); 
 
     /* copy the ecc flag into the buff */
     memcpy( sendBuff + ECC_FLAG_NUM_OFFSET, &ecc_flag, ECC_FLAG_SIZE );
@@ -111,15 +139,16 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   return 1; 
 }
 
-int BetterUDP_receive( )
+int BetterUDP_receive( char** receive_buffer )
 {
-    REQUEST_PACKET rp;
-
     char recvBuff[ MAXBUFFERLEN ];
-    char* reassembleBuff = (char*)malloc( sizeof( char) * MAXBUFFERLEN );
+    char* reassembleBuff = *receive_buffer;
+    // FIXME: this should be set to size of max int because sequence number is an int
+    //        see TODO node below on how to fix this because setting this to be max int
+    //        uses A LOT of space
     int receivedSequences[ MAXBUFFERLEN / MSG_CHUNK_SIZE ];
 
-    int size, i, error = 0, loop = 1;
+    int size, i, error = 0;
     unsigned int seqNum = 0, totalSeq = 1, 
                  buffPtr = 0, 
                  dataSize = DATA_SIZE,
@@ -175,12 +204,14 @@ int BetterUDP_receive( )
 
           maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
           // TODO: check that totalSeq hasn't changed from packet to packet
-          printf( "received sequence number %i\n", seqNum );
+          //printf( "received sequence number %i\n", seqNum );
         }
       }
-
-      loop++;
     }
+
+    // For now Better UDP only supports bit data packets, so we must repack the bits into
+    // bytes to reform the original message
+    int new_size = fromBitStream( &reassembleBuff, sizeof(char)*MAXBUFFERLEN );
 
     printf( "Received %i UDP packets\n", maxSeqNum );
   
@@ -194,13 +225,5 @@ int BetterUDP_receive( )
       }
     }
 
-    int loopSize = reassembleBuffSize / ( sizeof( rp ) );
-
-    /* for this test case, expecting REQUEST_PACKET data structures */
-    for( i = 0, reassembleBuffPtr = 0; i < loopSize; i++, reassembleBuffPtr += sizeof( rp ) )
-    {
-      memcpy( &rp, reassembleBuff + reassembleBuffPtr, sizeof( rp ) );
-      fprintf( stdout, "Opcode: %d, ID: %d\n", rp.opcode, rp.id );
-      fflush ( stdout );
-    }
+    return new_size;
 }

@@ -12,7 +12,13 @@ void server( const char *address, const char *port )
     /* initialize the UDP connection */
     UDP_ServerInit( port, address );
 
-    BetterUDP_receive();
+    char* buffer = (char*)malloc( sizeof(char) * MAXBUFFERLEN );
+    int length = BetterUDP_receive( &buffer );
+
+    // print the first line of the received txt
+    //  NOTE: the ebook text uses the DOS EOL format!!!
+    printf( "Received %i characters\n", length );
+    printf( "First Line:\n\'%.*s\'\n", strcspn( buffer, "\r\n"), buffer );
 
     UDP_close();
 }
