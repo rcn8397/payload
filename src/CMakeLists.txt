@@ -1,7 +1,16 @@
 ##########################################################
 ## Include directories:
 include_directories( "${GLIB2_INCLUDE_DIRS}" )
+MESSAGE( STATUS "GLIB2_INCLUDE_DIRS:         " ${GLIB2_INCLUDE_DIRS} )
 
+MESSAGE( STATUS "SYSTEM: ${CMAKE_SYSTEM_NAME}" )
+
+if (UNIX)
+MESSAGE( STATUS "Setting GLIB2_HEADERS" )
+execute_process(COMMAND pkg-config --cflags glib-2.0
+                OUTPUT_VARIABLE GLIB2_HEADERS OUTPUT_STRIP_TRAILING_WHITESPACE)
+MESSAGE( STATUS "GLIB2_HEADERS: "${GLIB2_HEADERS})
+endif()
 
 ##########################################################
 ## Executables
@@ -23,6 +32,10 @@ add_executable( ecc_server
 set_target_properties(ecc_client PROPERTIES COMPILE_DEFINITIONS "CLIENT")
 set_target_properties(ecc_server PROPERTIES COMPILE_DEFINITIONS "SERVER")
 
+if( UNIX )
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLIB2_HEADERS}" )
+MESSAGE( STATUS "COMPILE_FLAGS: ${CMAKE_C_FLAGS} ")
+endif()
 
 ##########################################################
 ## Optional Link Libraries
