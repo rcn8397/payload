@@ -29,6 +29,12 @@ add_executable( ecc_server
                 hamming.c
                 better_udp_socket.c )
 
+add_library( ecc SHARED
+             server.c
+             udp_socket.c
+             hamming.c
+             better_udp_socket.c )
+
 
 ##########################################################
 ## Setup Flags
@@ -50,10 +56,14 @@ target_link_libraries ( ecc_client
 target_link_libraries ( ecc_server 
      		        glib-2.0 )
 
+target_link_libraries ( ecc
+     		        glib-2.0 )
+
 
 ##########################################################
 ## Installation
 
 install ( TARGETS ecc_client ecc_server DESTINATION ${PROJECT_BINARY_DIR}/bin )
+install ( TARGETS ecc DESTINATION ${PROJECT_BINARY_DIR}/bin ) 
 install ( DIRECTORY "${CMAKE_SOURCE_DIR}/data"
           DESTINATION "${PROJECT_BINARY_DIR}" )
