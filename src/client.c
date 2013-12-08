@@ -30,7 +30,6 @@ void client( const char *address, const char *port )
       ptrOffset += sizeof( rp );
     }
 
-        fprintf( stdout, "size is: %d\n", ( sizeof( rp ) * 10 ) ); fflush( stdout );
     BetterUDP_send( buff, ( sizeof( rp ) * 10 ) );
     //UDP_send( buff, sizeof( rp ) );
     //UDP_send( send, sizeof( send ) );

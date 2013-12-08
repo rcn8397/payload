@@ -39,8 +39,6 @@ void server( const char *address, const char *port )
       {
         buffPtr = 0;
 
-        fprintf( stdout, "size is: %d\n", size ); fflush( stdout );
-
         while( buffPtr < size )
         {
           memcpy( &seqNum, recvBuff + buffPtr, sizeof( int ) );
@@ -52,23 +50,11 @@ void server( const char *address, const char *port )
           else
             receivedSequences[ expectedSeq++ ] = 1;
 
-          /* for this test case, expecting REQUEST_PACKET data structures */
-          /*
-          memcpy( &rp, seqBuff, sizeof( rp ) );
-          */
-          fprintf( stdout, "Received SeqNum: %d, TotalSeq: %d\n", seqNum, totalSeq );
-          fflush ( stdout );
-
           buffPtr += MSG_CHUNK_SIZE;
           seqBuffPtr += DATA_SIZE;
         }
       }
 
-      /*
-      fprintf( stdout, "error is: %d\n", error ); fflush( stdout );
-      if( error != 0 )
-        loop = 0;
-      */
       loop++;
     }
   

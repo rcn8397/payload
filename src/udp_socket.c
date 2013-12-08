@@ -227,8 +227,6 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     if( msg_size > MSG_CHUNK_SIZE )
        totalMsgs = ( ( msg_size / MSG_CHUNK_SIZE ) + ( ( msg_size % MSG_CHUNK_SIZE ) ? 1 : 0 ) );
 
-    fprintf( stdout, "totalMsgs: %d\n", totalMsgs ); fflush( stdout );
-
     returnBuff = ( char* )malloc( sizeof( char ) * MSG_CHUNK_SIZE );
 
     for( i = 0; i < totalMsgs; ++i, ++sequenceNum )
@@ -239,9 +237,6 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
       memcpy( returnBuff + SEQ_NUM_OFFSET, &totalMsgs, sizeof( int ) ); 
       /* copy the msg data */
       memcpy( returnBuff + TOTAL_SEQ_NUM_OFFSET, buff, DATA_SIZE ); 
-
-      fprintf( stdout, "sending msg of size %d, i: %d, sequenceNum: %d\n", 
-               MSG_CHUNK_SIZE, i, sequenceNum ); fflush( stdout );
 
       UDP_send( returnBuff, MSG_CHUNK_SIZE );
 
