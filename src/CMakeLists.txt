@@ -18,12 +18,14 @@ endif()
 add_executable( ecc_client
                 main.c 
                 client.c
-                udp_socket.c )
+                udp_socket.c 
+                better_udp_socket.c )
 
 add_executable( ecc_server
                 main.c 
                 server.c
-                udp_socket.c )
+                udp_socket.c
+                better_udp_socket.c )
 
 
 ##########################################################
