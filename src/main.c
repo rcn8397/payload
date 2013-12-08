@@ -15,11 +15,13 @@ int main(int argc, char *argv[])
 {
     const char *port = "1234";
     const char *addr = "127.0.0.1";
+    const char *file = NULL;
 
     GOptionEntry options[] =
     {
-        { "port", 0, 0, G_OPTION_ARG_STRING, &port, "port number", "port" },
+        { "port", 0, 0, G_OPTION_ARG_STRING, &port, "port number",  "port" },
         { "addr", 0, 0, G_OPTION_ARG_STRING, &addr, "host address", "host ip" },
+        { "file", 0, 0, G_OPTION_ARG_STRING, &file, "file path",    "tx data" },
         { NULL }
     };
 
@@ -33,7 +35,7 @@ int main(int argc, char *argv[])
 
 
 #if defined( CLIENT )
-    client( addr, port );
+    client( addr, port, file );
 #else
     server( addr, port );
 #endif

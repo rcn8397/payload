@@ -33,11 +33,20 @@ int readFile( const char* fn, char** buff )
     fclose( fd );
 }
 
-void client( const char *address, const char *port )
+void client( const char *address, const char *port, const char *data )
 {
     log_domain = g_strdup( "CLIENT:" );
-    file_name  = g_strdup( "christmas_carol.txt" );
 
+    if( data )
+        file_name = ( char *) data;
+    else
+        file_name  = g_strdup( "./data/christmas_carol.txt" );
+
+    g_log( log_domain, 
+           G_LOG_LEVEL_MESSAGE,
+           "Opening %s for tx",
+           file_name );
+   
     char* buffer = 0;
     int length = readFile( file_name, &buffer );
  
