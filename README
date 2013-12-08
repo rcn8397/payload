@@ -11,15 +11,41 @@ Richard Meth
 Carson Clanton
 Ryan C. Nordeen
 
-### Build ########################################################
+### In Source Build ########################################################
+
 cmake .
-make
+make install
 
+### Out Source Build #######################################################
 
-The output from the builds are stored in ./bin
+mkdir build
+cd build
+cmake ..
+make install
 
-### Run ##########################################################
+### Run ###################################################################
+The output from the builds are stored in ./bin, and data files are 
+copied to the ./data directory.
 
+To run: (from the build directory, either in-build or out-of-build)
 
-### Verification #################################################
+SERVER:
+./bin/ecc_server 
+
+CLIENT:
+./bin/ecc_client
+
+### HELP ###################################################################
+
+SERVER and CLIENT share options
+
+Help Options:
+  -h, --help         Show help options
+
+Application Options:
+  --port=port        port number
+  --addr=host ip     host address
+  --file=tx data     file path
+
+### Verification #########################################################
 
