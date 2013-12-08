@@ -1,8 +1,6 @@
 #ifndef _BETTER_UDP_SOCKET_H_
 #define _BETTER_UDP_SOCKET_H_
 
-#define MAXBUFFERLEN 1024
-
 /* sequence number size */
 #define SEQ_NUM_SIZE ( sizeof( int ) )
 
@@ -10,7 +8,7 @@
 #define SEQ_TOTAL_NUM_SIZE ( sizeof( int ) )
 
 /* ecc size ( currently really only 1 bit stuffed in 1 byte ) */
-#define ECC_FLAG_SIZE ( sizeof( int ) )
+#define ECC_FLAG_SIZE ( sizeof( char ) )
 
 /* ( FIXME: this should get set to: 
          MTU - IP header - UDP header - BetterUDP stuff
@@ -20,7 +18,7 @@
 
    For now this is 1 byte ( actually 1 bit contained in 1 byte )
 */
-#define DATA_SIZE            ( 1 )
+#define DATA_SIZE            ( sizeof( char ) )
 
 /* BUDP only size ( not UDP header )*/
 #define MSG_CHUNK_SIZE       ( SEQ_NUM_SIZE + SEQ_TOTAL_NUM_SIZE + ECC_FLAG_SIZE + DATA_SIZE )
