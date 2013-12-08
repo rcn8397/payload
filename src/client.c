@@ -4,6 +4,7 @@
 
 #include "udp_socket.h"
 #include "client.h"
+#include <string.h>
 
 char* log_domain;
 char* file_name;
@@ -30,8 +31,6 @@ int readFile( const char* fn, char** buff )
                file_name );
 
     fclose( fd );
-
-    return size;
 }
 
 void client( const char *address, const char *port )
@@ -45,7 +44,23 @@ void client( const char *address, const char *port )
     // initialize the udp socket
     UDP_ClientInit( port, address );
 
-    UDP_send( buffer, length > MAXBUFFERLEN ? MAXBUFFERLEN : length );
+    struct REQUEST_PACKET rp;
+    rp.opcode = REQUEST_OPCODE;
+    rp.id = 0;
+
+    char buff[ sizeof( rp ) * 10 ];
+
+    unsigned int ptrOffset = 0;
+
+    int i;
+    for( i = 0; i < 10; ++i )
+    {
+      rp.id += 1;
+      memcpy( buff + ptrOffset, &rp, sizeof( rp ) );
+      ptrOffset += sizeof( rp );
+    }
+
+    BetterUDP_send( buff, ( sizeof( rp ) * 10 ) );
     
     UDP_close();
 
