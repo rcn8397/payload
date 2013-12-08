@@ -6,7 +6,6 @@
 
 void client( const char *address, const char *port )
 { 
-    char send[] = "helloWorld!";
     int i;
 
     printf("Run Client\n");
@@ -31,8 +30,6 @@ void client( const char *address, const char *port )
     }
 
     BetterUDP_send( buff, ( sizeof( rp ) * 10 ) );
-    //UDP_send( buff, sizeof( rp ) );
-    //UDP_send( send, sizeof( send ) );
     
     UDP_close();
 
