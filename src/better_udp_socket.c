@@ -86,9 +86,11 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   // We have 3 ecc messages for every 4 data messages.  
   // CARSON TODO: if we have less than 4 data packets, how many ecc packets do we need?
   // BILL TODO: comment the second part of this back in once eccAddMsg() below is implemented
-  int maxSeqNum = totalMsgs ;//+ (totalMsgs/4)*3 ;
+  int maxSeqNum = totalMsgs + (totalMsgs/4)*3;
+  
+  printf("\n MaxSeqNum %d \n", maxSeqNum);
 
-  while( i < totalMsgs )
+  while( sequenceNum <= maxSeqNum )
   {
     char* data = buff + ( i * DATA_SIZE );
 
