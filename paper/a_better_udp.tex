@@ -496,13 +496,13 @@ Code chosen and the selection of its associcated redundancy parameters.
 % no \IEEEPARstart
 When a software engineer begins designing a
 network application, he or she has to make a decision between
-two transport layer options, TCP or UDP.  There are advantages
-and disadvantages to both.  With UDP comes nimbleness and low
-overhead, along with dropped and possibly out-of-sequence 
-packets.  With TCP comes reliable stream-based communication
-at the expense of throughput.  There isn't much middle ground
-between the two.  The approach discussed in this paper attempts
-to change that.
+two transport layer options, TCP or UDP \cite{kurose2012computer}.
+There are advantages and disadvantages to both.  With UDP comes
+nimbleness and low overhead, along with dropped and possibly
+out-of-sequence packets.  With TCP comes reliable stream-based
+communication at the expense of throughput.  There isn't much
+middle ground between the two.  The approach discussed in this
+paper attempts to change that.
 % You must have at least 2 lines in the paragraph with the drop letter
 % (should never be an issue)
 
@@ -534,16 +534,16 @@ a good candidate for a ECC solution.
 
 \subsection{Error-Correcting Codes}
 Below in Figure \ref{comm_link} is a schematic of the general
-communication link for sending messages.  Here the message is
-first sent by the \emph{source} to the \emph{encoder} where
-the message is assigned a \emph{codeword}, i.e. a string of
-characters from some chosen alphabet.  The encoded message is
-sent through a \emph{channel}, which is certain to have some
-level of noise that may possibly alter the codeword.  This
-possibly-altered codeword is then received by the \emph{decoder}
-where it is matched with its most likely candidate codeword
-which is in turn translated into a message resembling the
-original message and passed on to the \emph{receiver}.
+communication link for sending messages \cite{clanton2005maa}.
+Here the message is first sent by the \emph{source} to the
+\emph{encoder} where the message is assigned a \emph{codeword},
+i.e. a string of characters from some chosen alphabet.  The
+encoded message is sent through a \emph{channel}, which is
+certain to have some level of noise that may possibly alter
+the codeword.  This possibly-altered codeword is then received
+by the \emph{decoder} where it is matched with its most likely
+candidate codeword which is in turn translated into a message
+resembling the original message and passed on to the \emph{receiver}.
 The degree of resemblance to the original message depends
 on how appropriate the code is in relation to the channel.\\
 
@@ -967,8 +967,8 @@ For the purposes of prototyping our design, we
 used the single error-correcting Hamming
 code introduced above.  In general, a more robust
 and scalable ECC, like Reed-Solomon which is discussed
-in RFC5510, should be used, as the code we used
-is quite limited and so we had to keep
+in RFC5510 \cite{lacan2009reed}, should be used, as the
+code we used is quite limited and so we had to keep
 our message size unrealistically small, 1-bit.
 For our design the [7,4,3] Hamming code serves as a
 placeholder until Reed-Solomon can be integrated.
@@ -1485,14 +1485,15 @@ etc.
 % use section* for acknowledgement
 \section*{Acknowledgment}
 The Error-Correct Codes subsection of the Introduction
-was taken from a presentation one of the co-authors
+was taken, in part, from a presentation one of the co-authors
 presented at a Mathematical Association of America
-Texas Section conference in April 2005 \cite{hill1986first}.  It was included
-here to help demystify some of the math related to the
-[7,4,3] Hamming code used in our prototype.  All other
-sections and subsections are original.  This is the first
-time any of these authors have used Error-Correcting Codes
-to improve a transport protocol.
+Texas Section conference in April 2005 \cite{clanton2005maa}
+focusing on its connection to Finite Geometries.
+It was included here to help demystify some of the math
+related to the [7,4,3] Hamming code used in our prototype.
+All other sections and subsections are original.  This is the
+first time any of these authors have used Error-Correcting
+Codes to improve a transport protocol.
 
 
 
