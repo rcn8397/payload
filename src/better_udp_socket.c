@@ -26,8 +26,14 @@ int toBitStream( char** out_buff, char** in_buff, int in_size )
   
   int i,j;
   for( i=0; i<in_size; i++ )
+  {
+    //printf( "converting %c (%i) to:\n", (*in_buff)[i], (*in_buff)[i]); 
     for( j=0; j<8; j++ )
+    {
       (*out_buff)[i*8+j] = ( (*in_buff)[i] >> j ) & 0x1;
+      //printf( "  [%i] = %i\n", i*8+j, (*out_buff)[i*8+j] );
+    }
+  }
   return in_size*8;
 }
 
@@ -46,7 +52,12 @@ int fromBitStream( char** in_buff, int in_size )
   for( i=0; i<size; i++ )
     for( j=0; j<8; j++ )
       if( i*8+j < in_size )
-        (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      {
+        if( j==0 )
+          (out_buff)[i] = (*in_buff)[i*8+j] << j ;
+        else
+          (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      }
 
   memcpy( *in_buff, out_buff, size );
   (*in_buff)[size] = 0 ;
@@ -72,10 +83,9 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   //
   char* buff_mod;
   msg_size = toBitStream( &buff_mod, &buff, msg_size );
-  free( buff_mod );
+  free( buff );
   buff = buff_mod;
 
-  printf( "sending data[0] = %i\n", buff[0] ); 
   /* calculate the number of chunks to return */
   if( msg_size > DATA_SIZE )
      totalMsgs = ( ( msg_size / DATA_SIZE ) + ( ( msg_size % DATA_SIZE ) ? 1 : 0 ) );
@@ -119,7 +129,6 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
 
     /* copy the msg data */
     memcpy( sendBuff + DATA_NUM_OFFSET, data, DATA_SIZE ); 
-    printf( "sending: %i\n", data[0] );
 
     // TODO: simulate packet loss here
     // TODO: simulate out of order packets here
@@ -164,9 +173,9 @@ int BetterUDP_receive( char** receive_buffer )
       /* process a message from the ecc receiver */
       if( buff_len > 0 )
       {
-        printf( "processing packet: %i\n", seqNum );
+        //printf( "processing packet: %i\n", seqNum );
         memcpy( reassembleBuff + seqNum*DATA_SIZE, buff, buff_len );
-        printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (char)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
+        //printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (char)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
         maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
       }
 
@@ -197,7 +206,7 @@ int BetterUDP_receive( char** receive_buffer )
         //   1) reorder out of order packets
         //   2) recreate missing packets if possible
         char* ptr = recvBuff + DATA_NUM_OFFSET;
-        printf( "from net: %i\n", (char)(*(recvBuff + DATA_NUM_OFFSET)) );
+        //printf( "from net(%i): %i\n", seqNum-1, (char)(*(recvBuff + DATA_NUM_OFFSET)) );
         eccReceiveMsg( seqNum, totalSeq, eccFlag, &ptr, dataSize );
 
         //printf( "received sequence number %i\n", seqNum );

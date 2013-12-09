@@ -120,7 +120,7 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
         memcpy( buff, receivedPackets[i].buff, receivedPackets[i].buffLen );
         *buff_len = receivedPackets[i].buffLen;
         *seqNum   = receivedPackets[i].seqNum;
-        printf( "getting packet %i, seq = %i\n", i, *seqNum );
+        //printf( "getting packet %i, seq = %i\n", i, *seqNum );
 
 
         receivedPackets[i].state = STATE_SENT;
@@ -130,7 +130,7 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
         if( *seqNum == totalSeq )
         {
           waiting_for_more = false;
-          printf( "sending last packet\n" );
+          //printf( "sending last packet\n" );
         }
 
         //if sent whole septet, then reset it
@@ -142,8 +142,8 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
         if( all_sent )
           for( j=((*seqNum/7)%3)*7; j<((*seqNum/7)%3)*7+7; j++ )
             receivedPackets[j].state = STATE_NOT_RECEIVED;
-        if( all_sent )
-          printf( "finished septet\n" );
+        //if( all_sent )
+          //printf( "finished septet\n" );
 
         return true;
       }
@@ -170,7 +170,7 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
  */
 void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int buffLen )
 {
-    printf( "eccReceiveMsg( %i, %i )\n", seqNum, _totalSeq );
+    //printf( "eccReceiveMsg( %i, %i )\n", seqNum, _totalSeq );
 
     seqNum--;
     _totalSeq--;
@@ -183,11 +183,11 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
         receivedPackets[ pos ].state != STATE_NOT_RECEIVED )
       printf( "eccReceiveMsg() - error receiving packet(%i).  Already packet in array!\n",seqNum );
    
-    printf( "packet pos - %i\n", pos );
+    //printf( "packet pos - %i\n", pos );
     receivedPackets[ pos ].seqNum    = seqNum;
     receivedPackets[ pos ].eccFlag   = eccFlag;
     memcpy( receivedPackets[ pos ].buff, *buff, buffLen );
-    printf( "    packet data = %i,%i\n", (*buff)[0], receivedPackets[ pos ].buff[0] );
+    //printf( "    packet data = %i,%i\n", (*buff)[0], receivedPackets[ pos ].buff[0] );
     receivedPackets[ pos ].buffLen   = buffLen;
     receivedPackets[ pos ].countDown = -1;
 
@@ -205,17 +205,20 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
     int i;
     if( receivedPackets[ pos ].state == STATE_NOT_RECEIVED )
     {
-      printf( "first packet of septet\n" );
+      //printf( "first packet of septet\n" );
       // account for the possibility that we might not be using all packets of the final septet
       int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? ((totalSeq/7)%3)*7+(totalSeq%7)+1 : ((seqNum/7)%3)*7+7;
       for( i = ( (seqNum / 7) % 3 ) * 7; i<end; i++ )
       {
-        // initialize the other packets
-        receivedPackets[ i ].state     = STATE_WAITING;
-        receivedPackets[ i ].countDown = 0;
-        memset( receivedPackets[ i ].buff, 0, DATA_SIZE );
-        receivedPackets[ i ].buffLen   = DATA_SIZE;
-        receivedPackets[ i ].seqNum    = 7 * ( seqNum / 7 ) + ( i % 7 );
+        if( i != pos )
+        {
+          // initialize the other packets
+          receivedPackets[ i ].state     = STATE_WAITING;
+          receivedPackets[ i ].countDown = 0;
+          memset( receivedPackets[ i ].buff, 0, DATA_SIZE );
+          receivedPackets[ i ].buffLen   = DATA_SIZE;
+          receivedPackets[ i ].seqNum    = 7 * ( seqNum / 7 ) + ( i % 7 );
+        }
       }
 
       // decrement countdown, if we reach 0, then go ahead and forcibly mark packet as ready
@@ -232,7 +235,7 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
     // for now mark this packet ready
     receivedPackets[ pos ].state     = STATE_READY;
 
-    printf( "setting count downs\n" );
+    //printf( "setting count downs\n" );
     // for all packets in this group before the current sequence number, if we haven't
     // received the packet, start the count down timer for it
     for( i = (( seqNum / 7 ) % 3 )*7; i<pos; i++ )

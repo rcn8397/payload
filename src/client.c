@@ -56,8 +56,8 @@ void client( const char *address, const char *port, const char *data )
     UDP_ClientInit( port, address );
 
     // for now only send up to max buffer / 8
-    //BetterUDP_send( buffer, length > MAXBUFFERLEN/8 ? MAXBUFFERLEN/8 : length );
-    BetterUDP_send( buffer, 1000 ); //length > MAXBUFFERLEN/8 ? MAXBUFFERLEN/8 : length );
+    BetterUDP_send( buffer, length > MAXBUFFERLEN/8 ? MAXBUFFERLEN/8 : length );
+    //BetterUDP_send( buffer, 1000 ); //length > MAXBUFFERLEN/8 ? MAXBUFFERLEN/8 : length );
     
     UDP_close();
 
