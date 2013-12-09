@@ -6,6 +6,7 @@
 #define NUM_CODE_BITS       ( 7 )
 #define NUM_BITS_PER_BYTE   ( 8 )
 
+
 typedef unsigned char byte;
 
 

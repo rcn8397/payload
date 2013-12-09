@@ -15,55 +15,6 @@
 #include "packets.h"
 #include "hamming.h"
 
-// temporary hack - store each bit of every byte of the in buffer into 
-//                  its own byte in the out buff.  
-//                    sizeof(out_buff) == 8*sizeof(in_buff)
-//                  bit will be stored little endian
-// \return size of out buffer
-int toBitStream( char** out_buff, char** in_buff, int in_size )
-{
-  *out_buff = (char*)malloc( sizeof(char)*in_size*8 );
-  
-  int i,j;
-  for( i=0; i<in_size; i++ )
-  {
-    //printf( "converting %c (%i) to:\n", (*in_buff)[i], (*in_buff)[i]); 
-    for( j=0; j<8; j++ )
-    {
-      (*out_buff)[i*8+j] = ( (*in_buff)[i] >> j ) & 0x1;
-      //printf( "  [%i] = %i\n", i*8+j, (*out_buff)[i*8+j] );
-    }
-  }
-  return in_size*8;
-}
-
-// inverse of toBitStream() - takes a buffer that contains byte data where
-//              only the first bit of every byte contains data.  Pack those
-//              bits into a new byte buffer. Bits are stored little endian.
-//              New buffer will have the property:
-//                 sizeof(out_buff)*8 == sizeof(in_buff)
-// \return size of out buffer
-int fromBitStream( char** in_buff, int in_size )
-{
-  int size = in_size/8 + (in_size%8 ? 1 : 0 );
-  char* out_buff = (char*)malloc( sizeof(char)*size );
-
-  int i,j;
-  for( i=0; i<size; i++ )
-    for( j=0; j<8; j++ )
-      if( i*8+j < in_size )
-      {
-        if( j==0 )
-          (out_buff)[i] = (*in_buff)[i*8+j] << j ;
-        else
-          (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
-      }
-
-  memcpy( *in_buff, out_buff, size );
-  (*in_buff)[size] = 0 ;
-  return size;
-}
-
 int BetterUDP_send( char* buff, unsigned int msg_size )
 {
   char* sendBuff = NULL;
@@ -77,14 +28,6 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     fflush ( stdout );
     return 0;
   }
-
-  ////
-  // we only support single bit packets for now, so convert byte buff to bit buffers
-  //
-  char* buff_mod;
-  msg_size = toBitStream( &buff_mod, &buff, msg_size );
-  free( buff );
-  buff = buff_mod;
 
   /* calculate the number of chunks to return */
   if( msg_size > DATA_SIZE )
@@ -100,7 +43,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   //         packets there will be when we have less than 4 data pacekts.
   int maxSeqNum = totalMsgs ;//+ (totalMsgs/4)*3 ;
 
-  while( i < totalMsgs )
+  while( sequenceNum <= maxSeqNum )
   {
     char* data = buff + ( i * DATA_SIZE );
 
@@ -113,19 +56,11 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     //if( !eccSendMsg( &data, DATA_SIZE ) )
       i++;
 
-    // BILL TO DO: call calculate inner ecc function here!!!
-    //             Just FYI, flag is actually 1 bit according to carson, using 1 byte
-    //             to store it for ease of programming
-    char ecc_flag = eccInnerFlag( data );
-
     /* copy the seqence number into buffer */
     memcpy( sendBuff + SEQ_NUM_OFFSET, &sequenceNum, SEQ_NUM_SIZE ); 
 
     /* copy the total number of sequences into the buffer */
     memcpy( sendBuff + SEQ_TOTAL_NUM_OFFSET, &maxSeqNum, SEQ_TOTAL_NUM_SIZE ); 
-
-    /* copy the ecc flag into the buff */
-    memcpy( sendBuff + ECC_FLAG_NUM_OFFSET, &ecc_flag, ECC_FLAG_SIZE );
 
     /* copy the msg data */
     memcpy( sendBuff + DATA_NUM_OFFSET, data, DATA_SIZE ); 
@@ -190,7 +125,6 @@ int BetterUDP_receive( char** receive_buffer )
         /* grab the seq num and total seq */
         memcpy( &seqNum,   recvBuff + SEQ_NUM_OFFSET,       SEQ_NUM_SIZE );
         memcpy( &totalSeq, recvBuff + SEQ_TOTAL_NUM_OFFSET, SEQ_TOTAL_NUM_SIZE );
-        memcpy( &eccFlag,  recvBuff + ECC_FLAG_NUM_OFFSET,  ECC_FLAG_SIZE );
 
         /* tailor the data size for msgs that are smaller than the max DATA size*/
         dataSize = size - DATA_NUM_OFFSET;
@@ -218,11 +152,7 @@ int BetterUDP_receive( char** receive_buffer )
 
     reassembleBuffSize = maxSeqNum * MSG_CHUNK_SIZE;
 
-    // For now Better UDP only supports bit data packets, so we must repack the bits into
-    // bytes to reform the original message
-    int new_size = fromBitStream( &reassembleBuff, sizeof(char)*MAXBUFFERLEN );
-
     printf( "Received %i UDP packets\n", maxSeqNum );
   
-    return new_size;
+    return reassembleBuffSize;
 }

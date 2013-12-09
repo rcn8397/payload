@@ -61,6 +61,23 @@ byte eccInnerFlag( char *buff)
   
 }
 
+/* no packet has been received in the block */
+const int STATE_NOT_RECEIVED = 0;
+/* we received a packet from the block, so we must be waiting on this one */
+const int STATE_WAITING      = 1;
+/* received the packet */
+const int STATE_RECEIVED     = 2;
+/* finished processing the packet, is ready to be sent up the chain */
+const int STATE_READY        = 3;
+/* sent the packet up the chain */
+const int STATE_SENT         = 4;
+
+#define NUM_ECC_PACKETS    3
+#define NUM_DATA_PACKETS   4
+#define BLOCK_PACKETS      ( NUM_ECC_PACKETS + NUM_DATA_PACKETS )
+#define NUM_BLOCKS         10
+#define ARRAY_SIZE         ( NUM_BLOCKS * BLOCK_PACKETS )
+
 typedef struct Packet
 {
   int  seqNum;
@@ -72,20 +89,27 @@ typedef struct Packet
   int  state;
 } Packet;
 
-/* no packet has been received in the septet */
-int STATE_NOT_RECEIVED = 0;
-/* we received a packet from the septet, so we must be waiting on this one */
-int STATE_WAITING      = 1;
-/* received the packet */
-int STATE_RECEIVED     = 2;
-/* finished processing the packet, is ready to be sent up the chain */
-int STATE_READY        = 3;
-/* sent the packet up the chain */
-int STATE_SENT         = 4;
 
-Packet receivedPackets[21];
+Packet receivedPackets[ ARRAY_SIZE ];
 bool  waiting_for_more;
 int  totalSeq;
+
+int toIndex( int seqNum )
+{
+    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS+(seqNum%BLOCK_PACKETS);
+}
+
+int toBlockStartIndex( int seqNum )
+{
+    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS;
+}
+
+/* return the end index + 1 of the block the given seqNum is in
+ */
+int toBlockEndIndex( int seqNum )
+{
+    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS+BLOCK_PACKETS;
+}
 
 void eccStartReceive() 
 { 
@@ -93,7 +117,7 @@ void eccStartReceive()
     totalSeq = 0;
     
     int i;
-    for( i=0; i<21; i++ )
+    for( i=0; i<ARRAY_SIZE; i++ )
     {
       receivedPackets[i].state = STATE_NOT_RECEIVED;
       receivedPackets[i].countDown = -1;
@@ -113,7 +137,7 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
 
     // return the first ready packet
     int i;
-    for( i=0; i<21; i++ )
+    for( i=0; i<ARRAY_SIZE; i++ )
     {
       if( receivedPackets[i].state == STATE_READY )
       {
@@ -133,17 +157,17 @@ int eccGetMsg( char** buff, int* buff_len, int* seqNum )
           //printf( "sending last packet\n" );
         }
 
-        //if sent whole septet, then reset it
+        //if sent whole block, then reset it
         int j;
         bool all_sent = true;
-        for( j=((*seqNum/7)%3)*7; j<((*seqNum/7)%3)*7+7; j++ )
+        for( j=toBlockStartIndex(*seqNum); j<toBlockEndIndex(*seqNum); j++ )
           if( receivedPackets[j].state != STATE_SENT )
             all_sent = false;
         if( all_sent )
-          for( j=((*seqNum/7)%3)*7; j<((*seqNum/7)%3)*7+7; j++ )
+          for( j=toBlockStartIndex(*seqNum); j<toBlockEndIndex(*seqNum); j++ )
             receivedPackets[j].state = STATE_NOT_RECEIVED;
         //if( all_sent )
-          //printf( "finished septet\n" );
+          //printf( "finished block\n" );
 
         return true;
       }
@@ -176,7 +200,7 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
     _totalSeq--;
 
     // find the position for this packet in the receivedPackets array
-    int pos = (( seqNum / 7 ) % 3 )*7 + ( seqNum % 7 );
+    int pos = toIndex( seqNum );
 
     // sanity check, we should never hit this thanks to the countdown timer
     if( receivedPackets[ pos ].state != STATE_WAITING &&
@@ -193,22 +217,22 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
 
     totalSeq = _totalSeq > totalSeq ? _totalSeq : totalSeq;
 
-    // if this is the first packet of the septet to be received, mark the septet
+    // if this is the first packet of the block to be received, mark the block
     // as waiting and decrement the countdown timer on all others
     // FIXME: this is a really simplistic approach to the countdown timer. It is more
     //        of a memory used timer rather than a quantum timer.  It allows us to make
     //        sure we don't have to store too many packets at any one point in time. We 
     //        probably want to make this a pure quantum timer. Would require the use of
     //        threads!!
-    // FIXME: This approach also doesn't work if we lost a whole septet or if a whole septet
-    //        got more than 3 septets out of order!
     int i;
     if( receivedPackets[ pos ].state == STATE_NOT_RECEIVED )
     {
-      //printf( "first packet of septet\n" );
-      // account for the possibility that we might not be using all packets of the final septet
-      int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? ((totalSeq/7)%3)*7+(totalSeq%7)+1 : ((seqNum/7)%3)*7+7;
-      for( i = ( (seqNum / 7) % 3 ) * 7; i<end; i++ )
+      //printf( "first packet of block\n" );
+      // account for the possibility that we might not be using all packets of the final block
+      int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? 
+                        toIndex(totalSeq)+1 : 
+                        toBlockEndIndex(seqNum);
+      for( i = toBlockStartIndex( seqNum ); i<end; i++ )
       {
         if( i != pos )
         {
@@ -217,7 +241,7 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
           receivedPackets[ i ].countDown = 0;
           memset( receivedPackets[ i ].buff, 0, DATA_SIZE );
           receivedPackets[ i ].buffLen   = DATA_SIZE;
-          receivedPackets[ i ].seqNum    = 7 * ( seqNum / 7 ) + ( i % 7 );
+          receivedPackets[ i ].seqNum    = BLOCK_PACKETS * ( seqNum / BLOCK_PACKETS ) + ( i % BLOCK_PACKETS );
         }
       }
 
@@ -238,8 +262,8 @@ void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int bu
     //printf( "setting count downs\n" );
     // for all packets in this group before the current sequence number, if we haven't
     // received the packet, start the count down timer for it
-    for( i = (( seqNum / 7 ) % 3 )*7; i<pos; i++ )
+    for( i = toBlockStartIndex( seqNum ); i<pos; i++ )
       if( receivedPackets[i].state == STATE_WAITING &&
           receivedPackets[i].countDown < 0  )
-        receivedPackets[i].countDown = 2; // number of available septets in array -1
+        receivedPackets[i].countDown = NUM_BLOCKS - 4; // should allow for 3 completely missed blocks
 }
