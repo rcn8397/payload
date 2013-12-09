@@ -71,6 +71,7 @@
 % \documentclass[conference]{../sty/IEEEtran}
 
 
+\usepackage{cite}
 
 
 
@@ -128,6 +129,8 @@
 %
 \ifCLASSINFOpdf
   \usepackage[pdftex]{graphicx}
+  \usepackage{caption}
+  \usepackage{subcaption}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -803,8 +806,7 @@ $d\geq2t+1$, then $\mathbf{C}$ can be used to correct up
 to $t$ errors.
 \end{theorem}
 
-%\subsubsection{Subsubsection Heading Here}
-%Subsubsection text here.
+\vspace{6pt}
 
 \section{Design}
 A Better UDP is ``wedged in'' as another IP stack
@@ -910,7 +912,7 @@ buffering is to support the process of encoding the ECC.
 
 One of three conditions,
 prompts their delivery to the application layer at the
-destination:
+destination:\\
 
 \begin{enumerate}
  \item All four datagrams are received intact.
@@ -919,7 +921,7 @@ destination:
  \item A countdown timer reaches zero.\\
 \end{enumerate}
 
-The first of these conditions is obvious, while
+\noindent The first of these conditions is obvious, while
 the other two require further explanation.  It
 is easier to explain 3) first, so we will do
 that now.  As stated previously in our introduction,
@@ -981,8 +983,53 @@ source application layer.  These ECC bits are sent in
 three follow-on datagrams to the destination. These
 datagrams also contain sequence numbers, which are a
 continuation of the sequence numbers assigned to
-data/message datagrams.
+data/message datagrams.  To use the [7,4,3] Hamming
+code, there are two very important matrices required:
+the \emph{generator matrix} $G$
 
+$$
+G = \left( 
+\begin{matrix}
+  1 & 0 & 0 & 0 & 1 & 1 & 0 \\
+  0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+  0 & 0 & 1 & 0 & 0 & 1 & 1 \\
+  0 & 0 & 0 & 1 & 1 & 1 & 1
+ \end{matrix}
+\right)
+$$
+
+and the \emph{parity-check matrix} $H$
+
+$$
+H = \left( 
+\begin{matrix}
+  1 & 1 & 0 & 1 & 1 & 0 & 0 \\
+  1 & 0 & 1 & 1 & 0 & 1 & 0 \\
+  0 & 1 & 1 & 1 & 0 & 0 & 1
+ \end{matrix}
+\right)
+$$
+
+
+At the source, to encode a message $m$, which for purposes
+of the math is represented as a row vector in $\mathbf{F}^4_2$,
+multiply it on the right by $G$ to get $mG$, which is
+a row vector in $\mathbf{F}^7_2$, where the first four
+coordinates are $m$ and the last 3 coordinates are the
+parity-check bits, or (as we have been referring to
+them) the ``ECC''.
+
+At the destination, to decode the received vector $r\in\mathbf{F}^7_2$,
+mutliply it on the right by $H^\text{T}$ to get $rH^\text{T}$, which is
+a row vector in $\mathbf{F}^3_2$ known as the syndrome.  Next, syndrome
+decoding is performed whereby a \emph{coset leader} $e$ is matched
+with the syndrome $rH$. This coset leader represents the error vector
+between the received vector $r$ and the closet codeword $c$ to it. To
+determine $c$ simply add $r$ and $e$ modulo 2.  That is,
+
+$$
+c = r + e\; \mod 2
+$$
 
 
 %%%%************************************************************************%%%%
@@ -990,7 +1037,7 @@ data/message datagrams.
 %%%%     One Level - Outer ECC - BEGIN                                      %%%%
 %%%%                                                                        %%%%
 %%%%                                                                        %%%%
-\begin{figure}[h!]                                                          %%%%
+\begin{figure}[b!]                                                          %%%%
 \centering                                                                  %%%%
 \begin{tikzpicture}[scale=0.80]
   \node [style=none] (0) at (-2.25, 0.25) {\small Outer ECC};
@@ -1065,12 +1112,12 @@ data/message datagrams.
 
 
 Figure \ref{simplified_ecc_scheme}
-shows a simplified diagram of the ECC encoding scheme,
+shows a simplified diagram of the ECC encoding scheme we implemented,
 where `M' stands for message and the number is the datagram
 sequence number.  There are actually two levels of ECCs
-that we envision using, but due to the limited time we
+that we envisioned using, but due to the limited time we
 had to spend on this project we were not able to get the
-full implementation.  The level we implemented,
+full implementation finished.  The level we implemented,
 which is show in Figure, is the so-called outer or
 stream level ECC encoding and requires having the payload
 data in buffer which is treated as a vector in $\mathbf{F}^7$
@@ -1092,7 +1139,7 @@ of redunduncy in the ECC will be roughly equal the size of
 the data.  Our initial thought on this is that it will
 force a fixed-size payload, so that the size of the inner
 ECC can be pre-determined, but once this two-level scheme
-is prototyped we may find that isn't the case.
+is prototyped we may find this isn't the case.
 
 
 %%%%************************************************************************%%%%
@@ -1208,6 +1255,94 @@ is prototyped we may find that isn't the case.
 %%%%************************************************************************%%%%
 
 
+Our BUDP datagram will be encapsulated in an ordinary
+UDP datagram.  More specifically, BUDP will contain a
+header including a field for the sequence number and
+a field for an ECC flag, indicating whether the
+payload holds an ECC or data.  This BUDP datagram
+(BUDP header + BUDP payload), will form the payload
+of a regular UDP datagram.  See Figure \ref{budp_encap}
+below.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[scale=0.7]
+  \node [style=none] (0) at (-6.5, 2.25) {};
+  \node [style=none] (1) at (-2, 2.25) {};
+  \node [style=none] (2) at (-6.5, 1.25) {};
+  \node [style=none] (3) at (-2, 1.25) {};
+  \node [style=none] (4) at (-3, 1.25) {};
+  \node [style=none] (5) at (-3, 2.25) {};
+  \node [style=none] (6) at (-6.5, -0.75) {};
+  \node [style=none] (7) at (-2, -0.75) {};
+  \node [style=none] (8) at (-4.75, 1.75) {Seq No.};
+  \node [style=none] (9) at (-4.25, 0.25) {Data};
+  \node [style=none] (10) at (-2.5, 2) {ECC};
+  \node [style=none] (11) at (-2.5, 1.5) {flag};
+  \node [style=none] (12) at (4.5, 1.25) {};
+  \node [style=none] (13) at (4.5, 2.25) {};
+  \node [style=none] (14) at (0, -0.75) {};
+  \node [style=none] (15) at (2.25, 0.25) {Data};
+  \node [style=none] (16) at (0, 2.25) {};
+  \node [style=none] (17) at (0, 1.25) {};
+  \node [style=none] (18) at (4, 1.5) {flag};
+  \node [style=none] (19) at (4.5, -0.75) {};
+  \node [style=none] (20) at (3.5, 2.25) {};
+  \node [style=none] (21) at (4, 2) {ECC};
+  \node [style=none] (22) at (1.75, 1.75) {Seq No.};
+  \node [style=none] (23) at (3.5, 1.25) {};
+  \node [style=none] (24) at (-0.5, -1.25) {};
+  \node [style=none] (25) at (5, -1.25) {};
+  \node [style=none] (26) at (5, 2.75) {};
+  \node [style=none] (27) at (2.25, 3.25) {Standard UDP Header};
+  \node [style=none] (28) at (-0.5, 2.75) {};
+  \node [style=none] (29) at (5, 3.75) {};
+  \node [style=none] (30) at (-0.5, 3.75) {};
+  \node [style=none] (31) at (-4.25, -2) {(a) BUDP Datagram};
+  \node [style=none] (32) at (2.25, -2) {(b) BUDP encapsulated in UDP};
+  \draw [style=simple] (0.center) to (5.center);
+  \draw [style=simple] (5.center) to (1.center);
+  \draw [style=simple] (1.center) to (3.center);
+  \draw [style=simple] (3.center) to (4.center);
+  \draw [style=simple] (4.center) to (5.center);
+  \draw [style=simple] (4.center) to (2.center);
+  \draw [style=simple] (2.center) to (0.center);
+  \draw [style=simple] (2.center) to (6.center);
+  \draw [style=simple] (6.center) to (7.center);
+  \draw [style=simple] (7.center) to (3.center);
+  \draw [style=simple] (16.center) to (20.center);
+  \draw [style=simple] (20.center) to (13.center);
+  \draw [style=simple] (13.center) to (12.center);
+  \draw [style=simple] (12.center) to (23.center);
+  \draw [style=simple] (23.center) to (20.center);
+  \draw [style=simple] (23.center) to (17.center);
+  \draw [style=simple] (17.center) to (16.center);
+  \draw [style=simple] (17.center) to (14.center);
+  \draw [style=simple] (14.center) to (19.center);
+  \draw [style=simple] (19.center) to (12.center);
+  \draw [style=simple] (24.center) to (25.center);
+  \draw [style=simple] (25.center) to (26.center);
+  \draw [style=simple] (26.center) to (29.center);
+  \draw [style=simple] (29.center) to (30.center);
+  \draw [style=simple] (30.center) to (28.center);
+  \draw [style=simple] (28.center) to (24.center);
+  \draw [style=simple] (28.center) to (26.center);
+\end{tikzpicture}
+\caption{BUDP Encapsulation}
+\label{budp_encap}
+\end{figure}
+
+
+\section{Results}
+We expected our our implementation to perform at
+about half the throughput of stock UDP, due to the
+fact that there nearly as many redundancy bits
+as there are data bits.  What we were curious to
+see is how well it fared compared to standard TCP.
+
+To run these benchmarks, we forced packets to be
+drop via....
+
 
 %%%%************************************************************************%%%%
 %%%%                                                                        %%%%
@@ -1316,7 +1451,30 @@ is prototyped we may find that isn't the case.
 
 
 \section{Conclusion}
-The conclusion goes here.
+We have presented a design for a better UDP implementation
+where datagrams arrive in-order to the application layer
+at the destination and when a datagram is lost it can be
+reconstructed, provided 75\% of the datagrams in its ECC
+grouping and the ECC arrive intact.  If these latter two
+conditions are not met, then BUDP simply hands over what
+it does have to the application layer after a countdown
+clock expires.
+
+Our results indicate that....
+
+
+In the future, we would like to integrate a more robust
+Error-Correcting Code such as Reed-Solomon as documented
+in RFC5510.  Futhermore, we would like to implement the
+two-level ECC encoding scheme to build in more redundancy.
+
+Our view is in order to deal with the unreliability inherent
+in the Internet Protocol, a designer has to either build
+in redunduncy to help clean the communication channel or
+(s)he has to build in a retransmission infastructure, as
+is the case with TCP.  We prefer the error-correcting redundancy....
+or we did the redunduncy since it isn't available otherwise, etc.
+etc.
 
 
 
@@ -1326,10 +1484,15 @@ The conclusion goes here.
 
 % use section* for acknowledgement
 \section*{Acknowledgment}
-
-
-The authors would like to thank...
-
+The Error-Correct Codes subsection of the Introduction
+was taken from a presentation one of the co-authors
+presented at a Mathematical Association of America
+Texas Section conference in April 2005 \cite{hill1986first}.  It was included
+here to help demystify some of the math related to the
+[7,4,3] Hamming code used in our prototype.  All other
+sections and subsections are original.  This is the first
+time any of these authors have used Error-Correcting Codes
+to improve a transport protocol.
 
 
 
@@ -1356,14 +1519,20 @@ The authors would like to thank...
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{1}
+%\begin{thebibliography}{1}
 
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+%\bibitem{IEEEhowto:kopka}
+%H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+%  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
 
-\end{thebibliography}
+%E.~F. Assmus and J.~D. Key, \emph{DESIGNS AND THEIR CODES}, 3rd~ed.\hskip 1em plus
+%  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
 
+%\end{thebibliography}
+
+
+\bibliographystyle{plain}
+\bibliography{a_better_udp}
 
 
 
