@@ -46,7 +46,12 @@ int fromBitStream( char** in_buff, int in_size )
   for( i=0; i<size; i++ )
     for( j=0; j<8; j++ )
       if( i*8+j < in_size )
-        (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      {
+        if (j==0)
+	  (out_buff)[i] = (*in_buff)[i*8+j] << j ;
+	else
+	  (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      }
 
   memcpy( *in_buff, out_buff, size );
   (*in_buff)[size] = 0 ;
