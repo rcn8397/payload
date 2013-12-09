@@ -75,6 +75,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   free( buff_mod );
   buff = buff_mod;
 
+  printf( "sending data[0] = %i\n", buff[0] ); 
   /* calculate the number of chunks to return */
   if( msg_size > DATA_SIZE )
      totalMsgs = ( ( msg_size / DATA_SIZE ) + ( ( msg_size % DATA_SIZE ) ? 1 : 0 ) );
@@ -84,8 +85,9 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   totalSize = msg_size;
 
   // We have 3 ecc messages for every 4 data messages.  
-  // CARSON TODO: if we have less than 4 data packets, how many ecc packets do we need?
   // BILL TODO: comment the second part of this back in once eccAddMsg() below is implemented
+  // FIXME:  when we scale this above 1bit per packet, we will need to figure out how many ecc
+  //         packets there will be when we have less than 4 data pacekts.
   int maxSeqNum = totalMsgs ;//+ (totalMsgs/4)*3 ;
 
   while( i < totalMsgs )
@@ -98,7 +100,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     //     modify the data pointer with the ecc data and return true.  Returning
     //     false means all you did was record data and not change data.  If false then
     //     we want to increment our i so we move to the next piece of actual data.
-    //if( !eccAddMsg( &data, DATA_SIZE ) )
+    //if( !eccSendMsg( &data, DATA_SIZE ) )
       i++;
 
     // BILL TO DO: call calculate inner ecc function here!!!
@@ -117,6 +119,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
 
     /* copy the msg data */
     memcpy( sendBuff + DATA_NUM_OFFSET, data, DATA_SIZE ); 
+    printf( "sending: %i\n", data[0] );
 
     // TODO: simulate packet loss here
     // TODO: simulate out of order packets here
@@ -143,71 +146,68 @@ int BetterUDP_receive( char** receive_buffer )
 {
     char recvBuff[ MAXBUFFERLEN ];
     char* reassembleBuff = *receive_buffer;
-    // FIXME: this should be set to size of max int because sequence number is an int
-    //        see TODO node below on how to fix this because setting this to be max int
-    //        uses A LOT of space
-    int receivedSequences[ MAXBUFFERLEN / MSG_CHUNK_SIZE ];
 
     int size, i, error = 0;
     unsigned int seqNum = 0, totalSeq = 1, 
-                 buffPtr = 0, 
                  dataSize = DATA_SIZE,
-                 reassembleBuffPtr = 0, reassembleBuffSize = 0, 
+                 reassembleBuffSize = 0, 
                  expectedSeq = 1,
-                 eccFlag = 0;
-    char ecc_flag = 0;
-    unsigned int maxSeqNum = 0;
+                 eccFlag = 0,
+                 maxSeqNum = 0;
 
-    /* initialize the receivedSequences[] array */
-    for( i = 0; i < MAXBUFFERLEN / MSG_CHUNK_SIZE; ++i )
-      receivedSequences[ i ] = -1;
+    eccStartReceive();
 
-    // receive while we haven't received the final sequence number
-    // TODO: need to timeout on a missed sequence
-    while( maxSeqNum < totalSeq )
+    char buff[DATA_SIZE];
+    int  buff_len;
+    while( eccGetMsg( &buff, &buff_len, &seqNum ) )
     {
-      /* receive a msg */
-      error = UDP_recv( recvBuff, &size );
+      /* process a message from the ecc receiver */
+      if( buff_len > 0 )
+      {
+        printf( "processing packet: %i\n", seqNum );
+        memcpy( reassembleBuff + seqNum*DATA_SIZE, buff, buff_len );
+        printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (char)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
+        maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
+      }
+
+      /* receive a new msg from the net*/
+      if( !eccEOM() )
+        error = UDP_recv( recvBuff, &size );
+      else
+        size = 0;
 
       if( size > 0 )
       {
-        buffPtr = 0;
+        /* grab the seq num and total seq */
+        memcpy( &seqNum,   recvBuff + SEQ_NUM_OFFSET,       SEQ_NUM_SIZE );
+        memcpy( &totalSeq, recvBuff + SEQ_TOTAL_NUM_OFFSET, SEQ_TOTAL_NUM_SIZE );
+        memcpy( &eccFlag,  recvBuff + ECC_FLAG_NUM_OFFSET,  ECC_FLAG_SIZE );
 
-        while( buffPtr < size )
+        /* tailor the data size for msgs that are smaller than the max DATA size*/
+        dataSize = size - DATA_NUM_OFFSET;
+        if( dataSize > DATA_SIZE )
         {
-          /* grab the seq num and total seq */
-          memcpy( &seqNum,   recvBuff + (buffPtr + SEQ_NUM_OFFSET),       SEQ_NUM_SIZE );
-          memcpy( &totalSeq, recvBuff + (buffPtr + SEQ_TOTAL_NUM_OFFSET), SEQ_TOTAL_NUM_SIZE );
-          memcpy( &eccFlag,  recvBuff + (buffPtr + ECC_FLAG_NUM_OFFSET),  ECC_FLAG_SIZE );
-
-          /* tailor the data size for msgs that are smaller than the MSG_CHUNK_SIZE */
-          if( size >= MSG_CHUNK_SIZE )
-            dataSize = DATA_SIZE;
-          else
-            dataSize = size - DATA_NUM_OFFSET;
-
-          memcpy( reassembleBuff + reassembleBuffPtr, recvBuff + (buffPtr + DATA_NUM_OFFSET), dataSize );
-
-          /* record that we received a sequence */
-          // TODO: Should probably copy what TCP does and only keep track of the largest sequence number
-          //       we have received.  Trying to store an array for every potential integer slot for a 
-          //       sequence number can be expensive.  Maybe cut down to only a short for sequence number.
-          //       Short is still a lot of memory.
-          receivedSequences[ seqNum ] = 1;
-
-          /* update the buffer pointer */
-          buffPtr += MSG_CHUNK_SIZE;
-
-          /* update the current pointer and buffer size for the 'reassemble' buffer */
-          reassembleBuffPtr += dataSize;
-          reassembleBuffSize += dataSize;
-
-          maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
-          // TODO: check that totalSeq hasn't changed from packet to packet
-          //printf( "received sequence number %i\n", seqNum );
+            printf( "Error receiving data (seq num = %i)! "
+                    "Received data in packet is larger than maximum BUDP data packet.\n",
+                    seqNum );
+            continue;
         }
+
+        // pass the received packet to the ecc receiver where it will record it and do the following:
+        //   1) reorder out of order packets
+        //   2) recreate missing packets if possible
+        char* ptr = recvBuff + DATA_NUM_OFFSET;
+        printf( "from net: %i\n", (char)(*(recvBuff + DATA_NUM_OFFSET)) );
+        eccReceiveMsg( seqNum, totalSeq, eccFlag, &ptr, dataSize );
+
+        //printf( "received sequence number %i\n", seqNum );
+
+        // TODO: check that totalSeq hasn't changed from packet to packet
+
       }
     }
+
+    reassembleBuffSize = maxSeqNum * MSG_CHUNK_SIZE;
 
     // For now Better UDP only supports bit data packets, so we must repack the bits into
     // bytes to reform the original message
@@ -215,15 +215,5 @@ int BetterUDP_receive( char** receive_buffer )
 
     printf( "Received %i UDP packets\n", maxSeqNum );
   
-    /* check for missed sequences and simply print for now */
-    for( i = 1; i < ( MAXBUFFERLEN / MSG_CHUNK_SIZE ); ++i )
-    {
-      if( receivedSequences[ i ] == 0 )  
-      {
-        fprintf( stdout, "Missed sequence # %d\n", i );
-        fflush ( stdout );
-      }
-    }
-
     return new_size;
 }

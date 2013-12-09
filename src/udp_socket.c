@@ -196,7 +196,7 @@ int UDP_recv( char *buff, int *size )
         *size = recvfrom( sockfd,
                           buff,
                           MAXBUFFERLEN - 1,
-                          0,
+                          0, //MSG_DONTWAIT,
                           ( struct sockaddr *) &client_addr, 
                           &addr_len );
         

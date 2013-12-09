@@ -1,8 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "hamming.h"
+#include "better_udp_socket.h"
 
+typedef int bool;
+#define true 1
+#define false 0
 
 /* This is a test of the [7,4,3] Linear Error-Correcting Code
    (i.e. [7,4] Hamming Code).
@@ -54,4 +59,184 @@ byte eccInnerFlag( char *buff)
     
   return codeword_value;
   
+}
+
+typedef struct Packet
+{
+  int  seqNum;
+  char eccFlag;
+  char buff[DATA_SIZE];
+  int  buffLen;
+
+  int  countDown;
+  int  state;
+} Packet;
+
+/* no packet has been received in the septet */
+int STATE_NOT_RECEIVED = 0;
+/* we received a packet from the septet, so we must be waiting on this one */
+int STATE_WAITING      = 1;
+/* received the packet */
+int STATE_RECEIVED     = 2;
+/* finished processing the packet, is ready to be sent up the chain */
+int STATE_READY        = 3;
+/* sent the packet up the chain */
+int STATE_SENT         = 4;
+
+Packet receivedPackets[21];
+bool  waiting_for_more;
+int  totalSeq;
+
+void eccStartReceive() 
+{ 
+    waiting_for_more = true; 
+    totalSeq = 0;
+    
+    int i;
+    for( i=0; i<21; i++ )
+    {
+      receivedPackets[i].state = STATE_NOT_RECEIVED;
+      receivedPackets[i].countDown = -1;
+    }
+}
+
+bool eccEOM()
+{
+  return !waiting_for_more;
+}
+
+/* Return a packet that is ready to be pushed up to the app.
+ */
+int eccGetMsg( char** buff, int* buff_len, int* seqNum )
+{
+    bool have_waiting_packets = false;
+
+    // return the first ready packet
+    int i;
+    for( i=0; i<21; i++ )
+    {
+      if( receivedPackets[i].state == STATE_READY )
+      {
+        memcpy( buff, receivedPackets[i].buff, receivedPackets[i].buffLen );
+        *buff_len = receivedPackets[i].buffLen;
+        *seqNum   = receivedPackets[i].seqNum;
+        printf( "getting packet %i, seq = %i\n", i, *seqNum );
+
+
+        receivedPackets[i].state = STATE_SENT;
+
+        // FIXME: doesn't account for an out of order packet where the last
+        //        packet comes before another
+        if( *seqNum == totalSeq )
+        {
+          waiting_for_more = false;
+          printf( "sending last packet\n" );
+        }
+
+        //if sent whole septet, then reset it
+        int j;
+        bool all_sent = true;
+        for( j=((*seqNum/7)%3)*7; j<((*seqNum/7)%3)*7+7; j++ )
+          if( receivedPackets[j].state != STATE_SENT )
+            all_sent = false;
+        if( all_sent )
+          for( j=((*seqNum/7)%3)*7; j<((*seqNum/7)%3)*7+7; j++ )
+            receivedPackets[j].state = STATE_NOT_RECEIVED;
+        if( all_sent )
+          printf( "finished septet\n" );
+
+        return true;
+      }
+      else if( receivedPackets[i].state == STATE_WAITING )
+      {
+        have_waiting_packets = true;
+      }
+    }
+
+    *buff_len = 0;
+    //if( waiting_for_more )
+    //  printf( "waiting for more packets\n" );
+    //if( have_waiting_packets )
+    //  printf( "packets are waiting to be sent\n" );
+    return have_waiting_packets || waiting_for_more ;
+}
+
+/* Start tracking a new packet fromt the net.
+ 
+   This will:
+     1) initialize countdown timers for missed packets.
+     2) Reorder out of order packets.
+     3) Correct corrupted/missing packets
+ */
+void eccReceiveMsg( int seqNum, int _totalSeq, char eccFlag, char** buff, int buffLen )
+{
+    printf( "eccReceiveMsg( %i, %i )\n", seqNum, _totalSeq );
+
+    seqNum--;
+    _totalSeq--;
+
+    // find the position for this packet in the receivedPackets array
+    int pos = (( seqNum / 7 ) % 3 )*7 + ( seqNum % 7 );
+
+    // sanity check, we should never hit this thanks to the countdown timer
+    if( receivedPackets[ pos ].state != STATE_WAITING &&
+        receivedPackets[ pos ].state != STATE_NOT_RECEIVED )
+      printf( "eccReceiveMsg() - error receiving packet(%i).  Already packet in array!\n",seqNum );
+   
+    printf( "packet pos - %i\n", pos );
+    receivedPackets[ pos ].seqNum    = seqNum;
+    receivedPackets[ pos ].eccFlag   = eccFlag;
+    memcpy( receivedPackets[ pos ].buff, *buff, buffLen );
+    printf( "    packet data = %i,%i\n", (*buff)[0], receivedPackets[ pos ].buff[0] );
+    receivedPackets[ pos ].buffLen   = buffLen;
+    receivedPackets[ pos ].countDown = -1;
+
+    totalSeq = _totalSeq > totalSeq ? _totalSeq : totalSeq;
+
+    // if this is the first packet of the septet to be received, mark the septet
+    // as waiting and decrement the countdown timer on all others
+    // FIXME: this is a really simplistic approach to the countdown timer. It is more
+    //        of a memory used timer rather than a quantum timer.  It allows us to make
+    //        sure we don't have to store too many packets at any one point in time. We 
+    //        probably want to make this a pure quantum timer. Would require the use of
+    //        threads!!
+    // FIXME: This approach also doesn't work if we lost a whole septet or if a whole septet
+    //        got more than 3 septets out of order!
+    int i;
+    if( receivedPackets[ pos ].state == STATE_NOT_RECEIVED )
+    {
+      printf( "first packet of septet\n" );
+      // account for the possibility that we might not be using all packets of the final septet
+      int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? ((totalSeq/7)%3)*7+(totalSeq%7)+1 : ((seqNum/7)%3)*7+7;
+      for( i = ( (seqNum / 7) % 3 ) * 7; i<end; i++ )
+      {
+        // initialize the other packets
+        receivedPackets[ i ].state     = STATE_WAITING;
+        receivedPackets[ i ].countDown = 0;
+        memset( receivedPackets[ i ].buff, 0, DATA_SIZE );
+        receivedPackets[ i ].buffLen   = DATA_SIZE;
+        receivedPackets[ i ].seqNum    = 7 * ( seqNum / 7 ) + ( i % 7 );
+      }
+
+      // decrement countdown, if we reach 0, then go ahead and forcibly mark packet as ready
+      for( i = 0; i < 21; i++ )
+      {
+        if( receivedPackets[ i ].state == STATE_WAITING )
+          receivedPackets[ i ].countDown--;
+        if( receivedPackets[ i ].countDown == 0 )
+          receivedPackets[ i ].state = STATE_READY;
+      }
+    }
+
+    // TODO: correct this or previous packets if possible here
+    // for now mark this packet ready
+    receivedPackets[ pos ].state     = STATE_READY;
+
+    printf( "setting count downs\n" );
+    // for all packets in this group before the current sequence number, if we haven't
+    // received the packet, start the count down timer for it
+    for( i = (( seqNum / 7 ) % 3 )*7; i<pos; i++ )
+      if( receivedPackets[i].state == STATE_WAITING &&
+          receivedPackets[i].countDown < 0  )
+        receivedPackets[i].countDown = 2; // number of available septets in array -1
 }
