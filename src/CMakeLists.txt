@@ -1,18 +1,22 @@
+cmake_minimum_required(VERSION 2.6)
 ##########################################################
 ## Include directories:
-include_directories( "${GLIB2_INCLUDE_DIRS}" )
-MESSAGE( STATUS "GLIB2_INCLUDE_DIRS:         " ${GLIB2_INCLUDE_DIRS} )
-
 MESSAGE( STATUS "SYSTEM: ${CMAKE_SYSTEM_NAME}" )
 
-if (UNIX)
+if (UNIX OR APPLE)
 MESSAGE( STATUS "Setting GLIB2_HEADERS" )
 execute_process(COMMAND pkg-config --cflags glib-2.0
                 OUTPUT_VARIABLE GLIB2_HEADERS OUTPUT_STRIP_TRAILING_WHITESPACE)
 MESSAGE( STATUS "GLIB2_HEADERS: "${GLIB2_HEADERS})
 endif()
 
-##########################################################
+if ( APPLE )
+execute_process( COMMAND pkg-config --libs glib-2.0 
+	         OUTPUT_VARIABLE GLIB2_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE )
+MESSAGE( STATUS "GLIB2_LIBS: "${GLIB2_LIBS})
+endif()
+
+#########################################################
 ## Executables
 
 add_executable( ecc_client
@@ -42,10 +46,15 @@ add_library( ecc SHARED
 set_target_properties(ecc_client PROPERTIES COMPILE_DEFINITIONS "CLIENT")
 set_target_properties(ecc_server PROPERTIES COMPILE_DEFINITIONS "SERVER")
 
-if( UNIX )
+if( UNIX OR APPLE )
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLIB2_HEADERS}" )
-MESSAGE( STATUS "COMPILE_FLAGS: ${CMAKE_C_FLAGS} ")
 endif()
+
+if( APPLE )
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GLIB2_LIBS}")
+endif()
+
+MESSAGE( STATUS "COMPILE_FLAGS: ${CMAKE_C_FLAGS} ")
 
 ##########################################################
 ## Optional Link Libraries
