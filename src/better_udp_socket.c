@@ -46,7 +46,12 @@ int fromBitStream( char** in_buff, int in_size )
   for( i=0; i<size; i++ )
     for( j=0; j<8; j++ )
       if( i*8+j < in_size )
-        (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      {
+        if (j==0)
+	  (out_buff)[i] = (*in_buff)[i*8+j] << j ;
+	else
+	  (out_buff)[i] |= (*in_buff)[i*8+j] << j ;
+      }
 
   memcpy( *in_buff, out_buff, size );
   (*in_buff)[size] = 0 ;
@@ -85,25 +90,15 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
 
   // We have 3 ecc messages for every 4 data messages.  
   // CARSON TODO: if we have less than 4 data packets, how many ecc packets do we need?
-  // BILL TODO: comment the second part of this back in once eccAddMsg() below is implemented
-  int maxSeqNum = totalMsgs ;//+ (totalMsgs/4)*3 ;
-
-  while( i < totalMsgs )
+  int maxSeqNum = totalMsgs + (totalMsgs/4)*3;
+  
+  while( sequenceNum <= maxSeqNum )
   {
     char* data = buff + ( i * DATA_SIZE );
 
-    // BILL TO DO: pass current data for packet to outer ecc function here!!!
-    //     Thought here is to pass current data to outer ecc calculator, if its
-    //     time to send a ecc packet instead of a data packet, eccAddMsg() will 
-    //     modify the data pointer with the ecc data and return true.  Returning
-    //     false means all you did was record data and not change data.  If false then
-    //     we want to increment our i so we move to the next piece of actual data.
-    //if( !eccAddMsg( &data, DATA_SIZE ) )
+    if( !eccAddMsg( &data, DATA_SIZE ) )
       i++;
 
-    // BILL TO DO: call calculate inner ecc function here!!!
-    //             Just FYI, flag is actually 1 bit according to carson, using 1 byte
-    //             to store it for ease of programming
     char ecc_flag = eccInnerFlag( data );
 
     /* copy the seqence number into buffer */

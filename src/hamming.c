@@ -11,6 +11,17 @@
    matrix H.  Operations are done modulo 2.
   
  */
+ /* generator matrix  */
+ byte G [NUM_DATA_BITS][NUM_CODE_BITS] = 
+		  { { 1, 0, 0, 0, 1, 1, 0 }, 
+                  { 0, 1, 0, 0, 1, 0, 1 },
+                  { 0, 0, 1, 0, 0, 1, 1 },
+                  { 0, 0, 0, 1, 1, 1, 1 } };
+
+char byte_count;
+byte outer_msg [NUM_BITS_PER_BYTE] ;
+byte codeword [NUM_BITS_PER_BYTE];
+
 
 byte eccInnerFlag( char *buff)
 {
@@ -18,13 +29,8 @@ byte eccInnerFlag( char *buff)
  byte msg [NUM_BITS_PER_BYTE] ;
  byte codeword [NUM_BITS_PER_BYTE];
  byte codeword_value;
- /* generator matrix  */
- byte G [NUM_DATA_BITS][NUM_CODE_BITS] = { { 1, 0, 0, 0, 1, 1, 0 }, 
-                  { 0, 1, 0, 0, 1, 0, 1 },
-                  { 0, 0, 1, 0, 0, 1, 1 },
-                  { 0, 0, 0, 1, 1, 1, 1 } };
- 
-  for( j=0; j<NUM_BITS_PER_BYTE; j++ )
+
+ for( j=0; j<NUM_BITS_PER_BYTE; j++ )
       msg[j] = ( *buff >> j ) & 0x1;
  
   /* matrix multiplication */
@@ -38,20 +44,38 @@ byte eccInnerFlag( char *buff)
   for( j=0; j<NUM_BITS_PER_BYTE; j++ )
       codeword_value = codeword_value + ( (codeword)[j] << ((NUM_CODE_BITS-1)-j) );
 
-  
-  /* printout */
-//  printf ("eccInnerFlag    ") ;
-//  printf ("buff = %d= ",*buff);
-//  printf ("codeword = encode(") ;
-//  for ( k=0; k<NUM_DATA_BITS; k++ )
-//    printf ( "%d", msg [k] ) ;
-//  printf (") = ") ;
-//  for ( n=0; n<NUM_CODE_BITS; n++ )
-//    printf ( "%d", codeword [n] ) ;
-//  
-//  printf ("    Codeword Value = %d   ", codeword_value);
-//  printf ("eccInnerFlag Done   ") ;
-    
   return codeword_value;
   
+}
+
+int eccAddMsg( char** buff, int size )
+{
+  int k, n;
+
+  if (byte_count > NUM_CODE_BITS-1)
+    byte_count = 0;
+
+  // Calculate ECC bits
+  if (byte_count == NUM_DATA_BITS)
+  {
+     /* matrix multiplication */
+     for ( n=0; n<NUM_CODE_BITS; n++ )
+     {
+         codeword [n] = 0 ;
+	 for ( k=0; k<NUM_DATA_BITS; k++)
+	    codeword [n] ^= ( outer_msg [k] & G [k][n] ) ;
+     }
+  }
+
+    if (byte_count++ < NUM_DATA_BITS)
+    {
+      outer_msg[byte_count] = (int)**buff;
+      return 0;
+    }
+    else
+    {
+      char* data = codeword + byte_count - NUM_DATA_BITS;
+      *buff = data;
+      return -1;
+    }
 }

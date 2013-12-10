@@ -8,5 +8,7 @@
 
 typedef unsigned char byte;
 
+byte eccInnerFlag( char *buff);
+int eccAddMsg( char** buff, int size );
 
 #endif /* _HAMMING_H_ */
