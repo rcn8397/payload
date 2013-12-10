@@ -1,0 +1,5 @@
+#!/bin/bash
+exec ./src/ecc_server &
+exec ./src/ecc_client
+
+
