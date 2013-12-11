@@ -462,12 +462,12 @@ ryan.nordeen@mavs.uta.edu}
 
 \begin{abstract}
 %\boldmath
-This article describes an approach to improving the reliability of UDP.
-Our approach uses sequence numbers for datagrams to force in-order delivery
-to the Network Application layer and Error-Correcting Codes to help reproduce
+This article describes an approach to improving the reliability of UDP.  Our
+approach uses sequence numbers for datagrams to force in-order delivery to the
+destination network application layer and error-correcting codes to help reproduce
 lost datagrams without requesting retransmission of these missing datagrams.  The
-level of data reconstruction will be largely dependent on the Error-Correcting
-Code chosen and the selection of its associated redundancy parameters.
+level of data reconstruction will be largely dependent on the error-correcting
+code chosen and the selection of its associated redundancy parameters.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -500,17 +500,17 @@ network application, he or she has to make a decision between
 two transport layer options, TCP or UDP \cite{kurose2012computer}.
 There are advantages and disadvantages to both.  With UDP comes
 nimbleness and low overhead, along with dropped and possibly
-out-of-sequence datagrams.  With TCP comes reliable stream-based
-communication at the expense of throughput.  There isn't much
-middle ground between the two.  The approach discussed in this
-paper attempts to change that.
+out-of-sequence datagrams.  With TCP comes reliable connection-oriented
+stream-based communication at the expense of throughput \cite{kurose2012computer}.
+There isn't much middle ground between the two.  The approach discussed
+in this paper attempts to change that.
 % You must have at least 2 lines in the paragraph with the drop letter
 % (should never be an issue)
 
 We don't attempt or intend to redesign either protocol.  Instead,
 we seek to enhance the reliability of UDP, so that it is a little
-more like TCP, while remaining connectionless.  To do this, we
-will require two added features to be built ``on top'' of UDP:
+more like TCP, while remaining quick and connectionless.  To do this,
+we will require two added features to be built ``on top'' of UDP:
 Sequence Numbers and Error-Correcting Codes.
 
 The introduction of sequence numbers should be somewhat obvious;
@@ -519,9 +519,10 @@ to put datagrams back in order.  The subtlety, however, of requiring
 sequence numbers is that in order for our error-correcting codes
 approach to work, for the code we experimented with, at least 75\%
 of the datagram payload data must be available and properly
-sequenced.  So, the inclusion of sequence numbers is twofold.
+sequenced.  So, the inclusion of sequence numbers is really
+twofold.
 
-The second feature to be added, Error-Correcting Codes or ECC, is a
+The second feature to be added, error-correcting codes or ECC, is a
 little more complicated and requires more of an introduction,
 if for no other reason than to get acclimated to the terminology
 in the literature.
@@ -530,11 +531,11 @@ Given the no-guaranty and low-reliability characteristics of
 the networking layer and the little added value of UDP,
 a virtual communication link through a UDP socket represents
 an unreliable, and potentially noisy, channel, making it
-a good candidate for a ECC solution.
+a good candidate for a solution based on error-correcting codes.
 
 
 \subsection{Error-Correcting Codes}
-Below in Figure \ref{comm_link} is a block diagram of the general
+Above in Figure \ref{comm_link} is a block diagram of a general
 communication link for sending messages \cite{clanton2005maa}.
 Here the message is first sent by the \emph{source} to the
 \emph{encoder} where the message is assigned a \emph{codeword},
@@ -741,9 +742,9 @@ to use it an application developer or software engineer
 will have to include this functionality as a library.
 Instead of using a socket library to interface
 with the transport layer, the engineer will link with
-A Better UDP library to interface with the protocol stack
-below the application layer. Henceforth we will refer
-to A Better UDP as BUDP.
+A Better UDP library to interface with the remainder of
+the protocol stack which sits below the application layer.
+Henceforth we will refer to A Better UDP as BUDP.
 
 
 
@@ -765,23 +766,26 @@ to A Better UDP as BUDP.
 %%%%************************************************************************%%%%
 
 
+Messages, from the application layer at the source, are
+passed to BUDP, where, currently, four at a time are
+buffered, assigned sequence numbers, encoded to produce
+an ECC, and then sent as datagrams via standard UDP to
+their destination address. At the destination, the
+datagrams are collected and stored in an accumulation
+buffer, where they are placed in their proper sequence,
+see Figure \ref{overview_schematic}.  The purpose of
+buffering at the source is to support the process of
+encoding the ECC.  At the destination, it is a requisite
+part of the process since datagrams, presumably, arrive
+one-at-a-time and the decoding process cannot begin until
+a sufficient amount of the block data has been received.
+Here, we say block data, because as we will soon see
+datagrams have to be encoded in groups which we refer
+to, at various places in the source code, as blocks,
+for ``blocks of datagrams''.
 
-
-
-Messages, from the application layer at the source, are passed to
-BUDP, where, currently, four at a time are buffered,
-assigned sequence numbers, encoded to produce an ECC,
-and then sent as datagrams via standard UDP to their
-destination address. At the destination, the datagrams
-are collected and stored in an accumulation buffer,
-where they are placed in their proper sequence, see
-Figure \ref{overview_schematic}.  The purpose of
-buffering is to support the process of encoding the ECC.
-
-
-One of three conditions,
-prompts their delivery to the application layer at the
-destination:
+One of three conditions, prompts the delivery of messages
+to the application layer at the destination:
 
 \begin{enumerate}
  \item All four datagrams are received intact.
@@ -791,21 +795,19 @@ destination:
 \end{enumerate}
 
 \noindent The first of these conditions is obvious, while
-the other two require further explanation.  It
-is easier to explain 3) first, so we will do
-that now.  As stated previously in our introduction,
-we don't intend to rewrite TCP and we would like
-to keep our UDP implementation connectionless,
-so instead of requesting retransmission of
-missing datagrams, for example, when the one of
-the first two conditions above are not met, our
-implementation will simply give what it has to
-the application layer at the destination.  Our
-justification for doing this is that it is what
-a standard UDP implementation would do.  Actually,
-a standard implementation of UDP would do less,
-because our implementation will at least give the
-application layer in-order messages.
+the other two require further explanation.  It is easier
+to explain 3) first, so we will do that now.  As stated
+previously in our introduction, we don't intend to rewrite
+TCP and we would like to keep our UDP implementation
+connectionless, so instead of requesting retransmission
+of missing datagrams, for example, when the one of the first
+two conditions above is not met, our implementation will
+simply give what it has to the application layer at the
+destination.  Our justification for doing this is that it
+is what a standard UDP implementation would do.  Actually,
+a standard implementation of UDP would do less, because our
+implementation will at least give the application layer
+in-order messages.
 
 %there is one benefit our implementation would
 %have over the standard and it is that those
@@ -829,33 +831,15 @@ application layer in-order messages.
 %%%%                                                                        %%%%
 %%%%************************************************************************%%%%
 
-The second condition which can prompt message
-delivery to the application layer (i.e. condition 2)
-above) requires the use of Error-Correcting Codes.
-For the purposes of prototyping our design, we
-used the single error-correcting Hamming
+The second condition which can prompt message delivery to
+the application layer requires the use of
+error-correcting codes.  For the purposes of prototyping
+our design, we used the single error-correcting Hamming
 code introduced above which allowed us to benchmark
 our implementation against both standard TCP and
-standard UDP.
-%In general, a more robust
-%and scalable ECC, like Reed-Solomon which is discussed
-%in RFC5510 \cite{lacan2009reed}, should be used, as the
-%code we used is quite limited and so we had to keep
-%our message size unrealistically small, 1-bit.
-%For our design the [7,4,3] Hamming code serves as a
-%placeholder until Reed-Solomon can be integrated.
-%In general, a more robust
-%and scalable ECC, like Reed-Solomon which is discussed
-%in RFC5510 \cite{lacan2009reed}, should be used, as the
-%code we used is quite limited and so we had to keep
-%our message size unrealistically small, 1-bit.
-%For our design the [7,4,3] Hamming code serves as a
-%placeholder until Reed-Solomon can be integrated.
-%Nonetheless, the use of the Hamming code will
-%allow us to benchmark our design against both
-%standard TCP and standard UDP.
-Our purposes for using this code over the Reed-Solomon code
-suggested in RFC5510\cite{lacan2009reed} were four-fold:
+standard UDP.  Our purposes for using this code over
+the Reed-Solomon code suggested in RFC5510\cite{lacan2009reed}
+were four-fold:
 
 \begin{enumerate}
  \item It is simple to implement and suits our purposes very well.
@@ -877,17 +861,25 @@ suggested in RFC5510\cite{lacan2009reed} were four-fold:
        reasonably good to very good performance''\cite{kou2001low}.
 \end{enumerate}
 
-
+\subsection{Encoding and Decoding}
 Encoding the message stream, using four messages
-at a time, produces a 3-bit ECC, which is essentially
-a concatenation onto the four data bits coming from the
-source application layer.  These ECC bits are sent in
-three follow-on datagrams to the destination. These
-datagrams also contain sequence numbers, which are a
-continuation of the sequence numbers assigned to
-data/message datagrams.  To use the [7,4,3] Hamming
-code, there are two very important matrices required:
-the \emph{generator matrix} $G$
+at a time, produces a 3 ECC messages which are sent
+seperately as follow-on datagrams.  So, at an overly simplified
+level, the message stream, grouped in blocks of seven, flows like so:
+$$ \cdots ddddpppddddppp\cdots $$ where $d$ is a data symbol
+from the source application, and $p$ is a parity-check symbol
+associated with the four most recent $d$ symbols prior to it.
+This represents an increase of 75\% in the number of datagrams
+transmitted. These ECC or parity-check datagrams also contain
+sequence numbers, which are a continuation of the sequence
+numbers assigned to data messages.  These sequence numbers
+are used in the identification of these datagrams as containing
+ECCs. They are also used to identify with which data-containing
+datagrams they are associated.
+
+To use the [7,4,3] Hamming code, there are two very
+important matrices required: the \emph{generator matrix}
+$G$
 
 $$
 G = \left( 
@@ -918,8 +910,8 @@ of the math is represented as a row vector in $\mathbf{F}^4_2$,
 multiply it on the right by $G$ to get $mG$, which is
 a row vector in $\mathbf{F}^7_2$, where the first four
 coordinates are $m$ and the last 3 coordinates are the
-parity-check bits, or (as we have been referring to
-them) the ``ECC''.  In \cite{lacan2009reed}, these bits
+parity-check bits, or (as we have been referring to them)
+the ``ECC''.  In RFC 5510\cite{lacan2009reed}, these bits
 are called repair symbols.
 
 At the destination, to decode the received vector $r\in\mathbf{F}^7_2$,
@@ -927,8 +919,9 @@ mutliply it on the right by $H^\text{T}$ to get $rH^\text{T}$, which is
 a row vector in $\mathbf{F}^3_2$ known as the syndrome.  Next, syndrome
 decoding is performed whereby a \emph{coset leader} $e$ is matched
 with the syndrome $rH$. This coset leader represents the error vector
-between the received vector $r$ and the closet codeword $c$ to it. To
-determine $c$ simply add $r$ and $e$ modulo 2.  That is,
+which is the error between the received vector $r$ and the closest
+neighboring codeword $c$ to it. To determine $c$ simply add $r$ and
+$e$ modulo 2. That is,
 
 $$
 c = r + e\; \mod 2
@@ -952,36 +945,48 @@ $$
 %%%%                                                                        %%%%
 %%%%************************************************************************%%%%
 
+\subsection{Encoding Scheme}
 
 Figure \ref{simplified_ecc_scheme}
 shows a simplified diagram of the ECC encoding scheme we implemented,
 where `M' stands for message and the number is the datagram
-sequence number.  There are actually two levels of ECCs
-that we envisioned using, but due to the limited time we
-had to spend on this project we were not able to get the
-full implementation finished.  The level we implemented,
-which is show in Figure, is the so-called outer or
-stream level ECC encoding and requires having the payload
-data in buffer which is treated as a vector in $\mathbf{F}^7$
-in the mathematics of the encoding process.  The second level
-is the so-called inner or message level ECC encoding.  This
-inner ECC would allow for checking and correcting datagram
-integrity.  That is, if a data were received at the destination
-for found to be corrupted, it could be ``fixed''.  This
-is something that would be much more possible with a 
-Reed-Solomon encoding scheme.  Figure \ref{two_level_scheme}
-shows how the two level ECC scheme would look.  Although,
-to make a scheme like this work the inner ECC has to have
-almost as bits as there are data bits.  The reason for this
-is because in the case of a lost datagram the outer ECC will
-have to regenerate the missing inner ECC.  Once this inner
-ECC is regenerated, it will then be used to regenerate
-the missing data payload (from scratch).  The amount
-of redunduncy in the ECC will be roughly equal the size of
-the data.  Our initial thought on this is that it will
-force a fixed-size payload, so that the size of the inner
-ECC can be pre-determined, but once this two-level scheme
-is prototyped we may find this isn't the case.
+sequence number.
+
+There are actually two levels of ECCs that we considered using,
+but decided against this due to the unnecessary redundancy
+we felt it added.  This two-level scheme is shown in Figure
+\ref{two_level_scheme}.  The level we implemented in the
+one-level approach turns out to be an outer ECC in the
+two-level approach as shown in Figure \ref{two_level_scheme}.
+This two level scheme is very similar to the way CDs and DVDs
+are encoded with error-correcting redundancy\cite{kou2001low}.
+
+The second level is the so-called inner or message level
+ECC encoding.  This inner ECC would allow for checking and
+rectifying datagram integrity.  That is, if a datagram were
+received at the destination and found to be corrupted, it could
+be ``fixed''.  We felt this redundancy would never fulfill
+its purpose since stock UDP already provides a checksumming
+mechanism that potentially discards the datagram in the case
+where data corruption is detected.
+
+Besides, to make a scheme like this work, at least for the layer
+approach in the figure, the inner ECC would have to have almost
+as many parity bits as there are data bits in the application layer
+message.  The reason for this is that in the case of a lost datagram
+the outer ECC will have to regenerate the missing inner ECC, which,
+in turn, would have to regenerate the application layer message data.
+Our initial thought on this is that it will force a fixed-size
+payload, so that the size of the inner ECC can be pre-determined,
+but once this two-level scheme is prototyped we may find this
+isn't the case.
+
+With all the header overhead already inherent in the Internet
+Protocol plus adding a sequence number and stream-level error-correction
+codes, the actual application data might end up only accounting for
+20-40\% of the data transmitted, depending on how the application
+data is feed to the DUBP layer.  Adding a second level of ECCs
+would only exacerbate this condition and provide little added benefit.
 
 
 %%%%************************************************************************%%%%
@@ -1001,6 +1006,8 @@ is prototyped we may find this isn't the case.
 %%%%                                                                        %%%%
 %%%%************************************************************************%%%%
 
+
+\subsection{Encapsulation}
 
 Our BUDP datagram will be encapsulated in an ordinary
 UDP datagram.  More specifically, BUDP will contain a
@@ -1031,24 +1038,6 @@ drop via....
 
 Need to talk about information rates, how to improve
 these, how newest codes will solve issues
-
-
-%%%%************************************************************************%%%%
-%%%%                                                                        %%%%
-%%%%     - BEGIN                             %%%%
-%%%%                                                                        %%%%
-%%%%                                                                        %%%%
-%\begin{figure}[h!]                                                          %%%%
-%\centering                                                                  %%%%
-%  \includegraphics[scale=0.075]{PNGs/Buffer_and_Stream_Level_ECC}           %%%%
-%\caption{Prototype ECC encoding scheme}                                     %%%%
-%\label{proto_ecc_scheme}                                                    %%%%
-%\end{figure}                                                                %%%%
-%%%%                                                                        %%%%
-%%%%                                                                        %%%%
-%%%%     - END                               %%%%
-%%%%                                                                        %%%%
-%%%%************************************************************************%%%%
 
 
 

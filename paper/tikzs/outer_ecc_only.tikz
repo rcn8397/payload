@@ -1,5 +1,5 @@
 \begin{tikzpicture}
-  \node [style=none] (0) at (-2.25, 0.25) {Outer ECC};
+  \node [style=none] (0) at (-2.25, 0.25) {ECC};
   \node [style=none] (1) at (-6.5, 0.75) {};
   \node [style=none] (2) at (-4.5, 0.25) {M4};
   \node [style=none] (3) at (-7, -0.25) {};
