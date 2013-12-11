@@ -35,7 +35,7 @@ int BetterUDP_send( byte* buff, unsigned int msg_size )
 
   sendBuff = ( byte* )malloc( sizeof( byte ) * MSG_CHUNK_SIZE );
 
-  totalSize = msg_size;
+  totalSize = msg_size + (totalMsgs/4)*3*MSG_CHUNK_SIZE;
 
   // We have 3 ecc messages for every 4 data messages.  
   // CARSON TODO: if we have less than 4 data packets, how many ecc packets do we need?
@@ -60,10 +60,22 @@ int BetterUDP_send( byte* buff, unsigned int msg_size )
     // Simple flow control implementation, assuming 1GBps network
     usleep( 1 );
 
-    if( totalSize >= DATA_SIZE )
-      UDP_send( sendBuff, MSG_CHUNK_SIZE );
-    else
-      UDP_send( sendBuff, ( totalSize + DATA_NUM_OFFSET ) );
+    int sn = sequenceNum-1;
+    // simulate a packet loss from every block
+    if( sn % 7 != 3 )
+    {
+      //if( sn % 7 < 4 )
+        //printf( "Sending: %c\n", (sendBuff + DATA_NUM_OFFSET)[0] );
+      //else
+        //printf( "Sending ECC: %x\n", (sendBuff + DATA_NUM_OFFSET)[0] );
+
+      if( totalSize >= DATA_SIZE )
+        UDP_send( sendBuff, MSG_CHUNK_SIZE );
+      else
+        UDP_send( sendBuff, ( totalSize + DATA_NUM_OFFSET ) );
+    }
+    //else
+      //printf( "Not sending: %c\n", (sendBuff + DATA_NUM_OFFSET)[0] );
 
     totalSize -= DATA_SIZE;
     sequenceNum++;
@@ -100,16 +112,18 @@ int BetterUDP_receive( byte** receive_buffer )
       {
         //printf( "processing packet: %i\n", seqNum );
         memcpy( reassembleBuff + seqNum*DATA_SIZE, buff, buff_len );
-        //printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (byte)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
+        //printf( "   data[%i] = %c (%i,%i)\n", seqNum*DATA_SIZE, buff[0], buff[0], (byte)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
         maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
         reassembleBuffSize += buff_len ;
       }
 
       /* receive a new msg from the net*/
+      //printf("a\n");
       if( !eccEOM() )
         error = UDP_recv( recvBuff, &size );
       else
         size = 0;
+      //printf("b\n");
 
       if( size > 0 )
       {
@@ -131,7 +145,11 @@ int BetterUDP_receive( byte** receive_buffer )
         //   1) reorder out of order packets
         //   2) recreate missing packets if possible
         byte* ptr = recvBuff + DATA_NUM_OFFSET;
-        //printf( "from net(%i): %i\n", seqNum-1, (byte)(*(recvBuff + DATA_NUM_OFFSET)) );
+        //if( (seqNum-1)%7 < 4 )
+        //  printf( "from net(%i): %c\n", seqNum, (recvBuff + DATA_NUM_OFFSET)[0] );
+        //else
+        //  printf( "from net ecc(%i): %i\n", seqNum, (recvBuff + DATA_NUM_OFFSET)[0] );
+
         eccReceiveMsg( seqNum, totalSeq, &ptr, dataSize );
 
         //printf( "received sequence number %i\n", seqNum );

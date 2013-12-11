@@ -40,7 +40,7 @@ byte coset_leader [NUM_CODE_BITS+1][NUM_CODE_BITS] =
                                { 0, 0, 0, 1, 0, 0, 0 } } ;
 
 
-char byte_count;
+char byte_count = 0;
 byte outer_msg [NUM_BITS_PER_BYTE] ;
 byte codeword [NUM_BITS_PER_BYTE];
 
@@ -91,14 +91,14 @@ int eccSendMsg( byte** buff, int size )
 
   if (byte_count++ < NUM_DATA_BITS)
   {
-    outer_msg[byte_count] = (int)**buff;
+    outer_msg[byte_count-1] = **buff;
     return 0;
   }
   else
   {
-    byte* data = codeword + byte_count - NUM_DATA_BITS;
+    byte* data = codeword + byte_count - 1;
     *buff = data;
-    return -1;
+    return 1;
   }
 }
 
@@ -136,26 +136,26 @@ int    receivedPacketsCount[ NUM_BLOCKS ];
 bool   waiting_for_more;
 int    totalSeq;
 
-int toIndex( int seqNum )
-{
-    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS+(seqNum%BLOCK_PACKETS);
-}
-
 int toBlockIndex( int seqNum )
 {
     return ( seqNum / BLOCK_PACKETS ) % NUM_BLOCKS ;
 }
 
+int toIndex( int seqNum )
+{
+    return toBlockIndex( seqNum ) * BLOCK_PACKETS + (seqNum%BLOCK_PACKETS);
+}
+
 int toBlockStartIndex( int seqNum )
 {
-    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS;
+    return toBlockIndex( seqNum ) * BLOCK_PACKETS;
 }
 
 /* return the end index + 1 of the block the given seqNum is in
  */
 int toBlockEndIndex( int seqNum )
 {
-    return ((seqNum/BLOCK_PACKETS)%NUM_ECC_PACKETS)*BLOCK_PACKETS+BLOCK_PACKETS;
+    return toBlockIndex( seqNum ) * BLOCK_PACKETS + BLOCK_PACKETS;
 }
 
 void eccStartReceive() 
@@ -201,13 +201,6 @@ bool eccGetMsg( byte** buff, int* buff_len, int* seqNum )
 
         receivedPackets[i].state = STATE_SENT;
 
-        // FIXME: doesn't account for an out of order packet where the last
-        //        packet comes before another
-        if( old_seqNum == totalSeq )
-        {
-          waiting_for_more = false;
-        }
-
         //if sent whole block, then reset it
         int j;
         bool all_sent = true;
@@ -220,19 +213,27 @@ bool eccGetMsg( byte** buff, int* buff_len, int* seqNum )
           for( j=toBlockStartIndex(old_seqNum); j<toBlockEndIndex(old_seqNum); j++ )
             receivedPackets[j].state = STATE_NOT_RECEIVED;
           receivedPacketsCount[toBlockIndex(old_seqNum)] = 0;
+          //printf( "Block(%i) all sent)\n", toBlockIndex(old_seqNum));
         }
 
         // if a data packet, return it
         if( i%BLOCK_PACKETS<NUM_DATA_PACKETS )
+        {
+          //printf( "Get: %i, %i\n", *seqNum, old_seqNum );
           return true;
+        }
+        //else
+          //printf( "Get: skipping %i\n", old_seqNum );
       }
       else if( receivedPackets[i].state == STATE_WAITING )
       {
         have_waiting_packets = true;
+        //printf( "found waiting (%i)\n", i );
       }
     }
 
     // we didn't find a ready packet but are we waiting for more
+    //printf( "No ready packets\n" );
     *buff_len = 0;
     return have_waiting_packets || waiting_for_more ;
 }
@@ -262,7 +263,7 @@ void compute_syndrome (int idx, byte *syndrome) //(byte *received, byte *syndrom
  */
 void eccCorrect( int block_idx )
 {
-  int i = toBlockStartIndex (block_idx * BLOCK_PACKETS) ;
+  int i = block_idx * BLOCK_PACKETS ;
   byte syndrome [NUM_PARITY_BITS] ;
   byte e ;
   byte n ;
@@ -290,10 +291,13 @@ void eccCorrect( int block_idx )
        c [n] ^= ( ( r [n] ^ e ) << b ) & ( 0x01 << b) ;
     }
     
-    receivedPackets [i + n] . buff[0] = c [n] ;
     
-    //if ((n<4) && (receivedPackets[ i + n ].state == STATE_WAITING))
-    //  receivedPackets[ i + n ].state = STATE_RECEIVED ;
+    if ((n<4) && (receivedPackets[ i + n ].state == STATE_WAITING))
+    {
+      receivedPackets[ i + n ].buff[0] = c [n] ;
+      receivedPackets[ i + n ].state = STATE_READY ;
+      //printf( "fixing index: %i\n", i+n );
+    }
   }
 }
 
@@ -320,7 +324,7 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
     if( receivedPackets[ pos ].state != STATE_WAITING &&
         receivedPackets[ pos ].state != STATE_NOT_RECEIVED )
     {
-      printf( "eccReceiveMsg() - error receiving packet(%i).  Already packet in array!\n",seqNum );
+      //printf( "eccReceiveMsg() - error receiving packet(%i).  Already packet in array!\n",seqNum );
       return;
     }
    
@@ -332,6 +336,15 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
     totalSeq = _totalSeq > totalSeq ? _totalSeq : totalSeq;
 
     receivedPacketsCount[ block_idx ]++;
+
+    // FIXME: doesn't account for an out of order packet where the last
+    //        packet comes before another
+    //printf( "seqNum = %i %i\n", seqNum, totalSeq );
+    if( seqNum == totalSeq )
+    {
+      waiting_for_more = false;
+      //printf( "not waiting for more\n" );
+    }
 
     // if this is the first packet of the block to be received, mark the block
     // as waiting and decrement the countdown timer on all others
@@ -357,7 +370,7 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
       }
 
       // decrement countdown, if we reach 0, then go ahead and forcibly mark packet as ready
-      for( i = 0; i < 21; i++ )
+      for( i = 0; i < ARRAY_SIZE; i++ )
       {
         if( receivedPackets[ i ].state == STATE_WAITING )
           receivedPackets[ i ].countDown--;
@@ -371,13 +384,15 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
     // if this is a data packet then go ahead and mark it ready
     //  we are assuming the lower layers of the network stack are correcting for
     //  corrupted packets
-    receivedPackets[ pos ].state     = STATE_READY;
+    if(( pos % BLOCK_PACKETS ) < NUM_DATA_PACKETS )
+      receivedPackets[ pos ].state     = STATE_READY;
+    else
+      receivedPackets[ pos ].state     = STATE_SENT;
 
-    // CARSON/BILLY TODO: add ecc correction here!!!
-    if( receivedPacketsCount[ block_idx ] == 6 )
+    if( receivedPacketsCount[ block_idx ] == BLOCK_PACKETS-1 )
     {
       eccCorrect( block_idx );  //  do ecc correction for final packet
-      //receivedPacketsCount[ block_idx ]++;
+      receivedPacketsCount[ block_idx ]++;
       //int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? 
       //                  toIndex(totalSeq)+1 : 
       //                  toBlockEndIndex(seqNum);
