@@ -13,6 +13,6 @@ serverSocket.bind(('', 12000))
 while True:
   # Receive the client packet along with the address it is coming from
   message, address = serverSocket.recvfrom(1024)
-  sys.stdout.write( '%s' % message )
+  #sys.stdout.write( '%s' % message )
 
 serverSocket.client()

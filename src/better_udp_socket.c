@@ -15,9 +15,9 @@
 #include "packets.h"
 #include "hamming.h"
 
-int BetterUDP_send( char* buff, unsigned int msg_size )
+int BetterUDP_send( byte* buff, unsigned int msg_size )
 {
-  char* sendBuff = NULL;
+  byte* sendBuff = NULL;
   unsigned int sequenceNum = 1;
   unsigned int totalMsgs = 1, totalSize = 0;
   int i = 0;
@@ -33,7 +33,7 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   if( msg_size > DATA_SIZE )
      totalMsgs = ( ( msg_size / DATA_SIZE ) + ( ( msg_size % DATA_SIZE ) ? 1 : 0 ) );
 
-  sendBuff = ( char* )malloc( sizeof( char ) * MSG_CHUNK_SIZE );
+  sendBuff = ( byte* )malloc( sizeof( byte ) * MSG_CHUNK_SIZE );
 
   totalSize = msg_size;
 
@@ -43,12 +43,10 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   
   while( sequenceNum <= maxSeqNum )
   {
-    char* data = buff + ( i * DATA_SIZE );
+    byte* data = buff + ( i * DATA_SIZE );
 
-    if( !eccAddMsg( &data, DATA_SIZE ) )
+    if( !eccSendMsg( &data, DATA_SIZE ) )
       i++;
-
-    char ecc_flag = eccInnerFlag( data );
 
     /* copy the seqence number into buffer */
     memcpy( sendBuff + SEQ_NUM_OFFSET, &sequenceNum, SEQ_NUM_SIZE ); 
@@ -59,10 +57,9 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
     /* copy the msg data */
     memcpy( sendBuff + DATA_NUM_OFFSET, data, DATA_SIZE ); 
 
-    // TODO: simulate packet loss here
-    // TODO: simulate out of order packets here
-    // TODO: implement flow control
-    usleep( 100 );
+    // Simple flow control implementation, assuming 1GBps network
+    usleep( 1 );
+
     if( totalSize >= DATA_SIZE )
       UDP_send( sendBuff, MSG_CHUNK_SIZE );
     else
@@ -80,32 +77,32 @@ int BetterUDP_send( char* buff, unsigned int msg_size )
   return 1; 
 }
 
-int BetterUDP_receive( char** receive_buffer )
+int BetterUDP_receive( byte** receive_buffer )
 {
-    char recvBuff[ MAXBUFFERLEN ];
-    char* reassembleBuff = *receive_buffer;
+    byte recvBuff[ MAXBUFFERLEN ];
+    byte* reassembleBuff = *receive_buffer;
 
     int size, i, error = 0;
     unsigned int seqNum = 0, totalSeq = 1, 
                  dataSize = DATA_SIZE,
                  reassembleBuffSize = 0, 
                  expectedSeq = 1,
-                 eccFlag = 0,
                  maxSeqNum = 0;
 
     eccStartReceive();
 
-    char buff[DATA_SIZE];
+    byte buff[DATA_SIZE];
     int  buff_len;
     while( eccGetMsg( &buff, &buff_len, &seqNum ) )
     {
-      /* process a message from the ecc receiver */
+      /* copy returned message from ecc processor into the reassemble buffer */ 
       if( buff_len > 0 )
       {
         //printf( "processing packet: %i\n", seqNum );
         memcpy( reassembleBuff + seqNum*DATA_SIZE, buff, buff_len );
-        //printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (char)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
+        //printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (byte)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
         maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
+        reassembleBuffSize += buff_len ;
       }
 
       /* receive a new msg from the net*/
@@ -133,9 +130,9 @@ int BetterUDP_receive( char** receive_buffer )
         // pass the received packet to the ecc receiver where it will record it and do the following:
         //   1) reorder out of order packets
         //   2) recreate missing packets if possible
-        char* ptr = recvBuff + DATA_NUM_OFFSET;
-        //printf( "from net(%i): %i\n", seqNum-1, (char)(*(recvBuff + DATA_NUM_OFFSET)) );
-        eccReceiveMsg( seqNum, totalSeq, eccFlag, &ptr, dataSize );
+        byte* ptr = recvBuff + DATA_NUM_OFFSET;
+        //printf( "from net(%i): %i\n", seqNum-1, (byte)(*(recvBuff + DATA_NUM_OFFSET)) );
+        eccReceiveMsg( seqNum, totalSeq, &ptr, dataSize );
 
         //printf( "received sequence number %i\n", seqNum );
 
@@ -144,9 +141,8 @@ int BetterUDP_receive( char** receive_buffer )
       }
     }
 
-    reassembleBuffSize = maxSeqNum * MSG_CHUNK_SIZE;
 
-    printf( "Received %i UDP packets\n", maxSeqNum );
+    printf( "Received %i UDP packets\n", totalSeq );
   
     return reassembleBuffSize;
 }

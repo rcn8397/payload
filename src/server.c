@@ -20,5 +20,11 @@ void server( const char *address, const char *port )
     printf( "Received %i characters\n", length );
     printf( "First Line:\n\'%.*s\'\n", strcspn( buffer, "\r\n"), buffer );
 
+    printf( "length = %i\n", strlen( buffer ));
+
+    FILE* fd = fopen( "out.txt", "w" );
+    fwrite( buffer, sizeof(char), length, fd );
+    fclose( fd );
+
     UDP_close();
 }

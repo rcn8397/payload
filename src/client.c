@@ -55,6 +55,7 @@ void client( const char *address, const char *port, const char *data )
     // initialize the udp socket
     UDP_ClientInit( port, address );
 
+    printf( "Sending %i bytes\n", strlen( buffer ));
     BetterUDP_send( buffer, length );
     
     UDP_close();

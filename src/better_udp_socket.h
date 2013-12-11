@@ -1,13 +1,16 @@
 #ifndef _BETTER_UDP_SOCKET_H_
 #define _BETTER_UDP_SOCKET_H_
 
+#include "hamming.h"
+
 /* sequence number size */
 #define SEQ_NUM_SIZE ( sizeof( int ) )
 
 /* sequence total number size */
 #define SEQ_TOTAL_NUM_SIZE ( sizeof( int ) )
 
-#define DATA_SIZE            ( sizeof( char )*100 )
+#define DATA_SIZE            ( sizeof( char ) )
+//#define DATA_SIZE            ( sizeof( char )*100 )
 
 /* BUDP only size ( not UDP header )*/
 #define MSG_CHUNK_SIZE       ( SEQ_NUM_SIZE + SEQ_TOTAL_NUM_SIZE + DATA_SIZE )
@@ -21,7 +24,7 @@
 /*  constant for offsetting writing of data into the buffer */
 #define DATA_NUM_OFFSET      ( SEQ_TOTAL_NUM_OFFSET + SEQ_TOTAL_NUM_SIZE ) 
 
-int BetterUDP_send( char* buff, unsigned int msg_size );
-char* BetterUDP_sendAll( char* buff, unsigned int msg_size );
+int BetterUDP_send( byte* buff, unsigned int msg_size );
+byte* BetterUDP_sendAll( byte* buff, unsigned int msg_size );
 
 #endif /* _UDP_SOCKET_H_ */
