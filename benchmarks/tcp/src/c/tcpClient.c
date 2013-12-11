@@ -66,7 +66,7 @@ int main (int argc, char *argv[]) {
   //for(i=2;i<argc;i++) {
   while(scanf("%c",&data)!=EOF) {
     
-    printf("%c",data);
+    //printf("%c",data);
     rc = send(sd, &data, strlen(&data) + 1, 0);
     
     if(rc<0) {

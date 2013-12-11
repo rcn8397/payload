@@ -49,7 +49,7 @@ int main (int argc, char *argv[]) {
 
   listen(sd,5);
   
-  while(1) {
+  //while(1) {
 
     fprintf(stderr,"%s: waiting for data on port TCP %u\n",argv[0],SERVER_PORT);
 
@@ -76,7 +76,8 @@ int main (int argc, char *argv[]) {
       
     } /* while(read_line) */
     
-  } /* while (1) */
+  //} /* while (1) */
+  close(sd);
 
 }
 

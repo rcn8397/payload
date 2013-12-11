@@ -1,0 +1,5 @@
+#!/bin/bash
+exec ./s/a.out > data.out &
+(cat ../../../data/christmas_carol.txt) | ./c/a.out
+
+

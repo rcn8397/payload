@@ -18,15 +18,15 @@ typedef unsigned char byte;
 
 
 /* generator matrix  */
-byte G [K][N] = { { 1, 0, 0, 0, 1, 1, 0 }, 
-                  { 0, 1, 0, 0, 1, 0, 1 },
-                  { 0, 0, 1, 0, 0, 1, 1 },
-                  { 0, 0, 0, 1, 1, 1, 1 } };
+byte G [K][N] = { { 0xff, 0,    0,    0,    0xff, 0xff, 0    }, 
+                  { 0,    0xff, 0,    0,    0xff, 0,    0xff },
+                  { 0,    0,    0xff, 0,    0,    0xff, 0xff },
+                  { 0,    0,    0,    0xff, 0xff, 0xff, 0xff } };
 
 /* parity-check matrix  */
-byte H [D][N] = { { 1, 1, 0, 1, 1, 0, 0 }, 
-                  { 1, 0, 1, 1, 0, 1, 0 },
-                  { 0, 1, 1, 1, 0, 0, 1 } };
+byte H [D][N] = { { 0xff, 0xff, 0,    0xff, 0xff, 0,    0    }, 
+                  { 0xff, 0,    0xff, 0xff, 0,    0xff, 0    },
+                  { 0,    0xff, 0xff, 0xff, 0,    0,    0xff } };
 
 
 /* coset leader LUT index by syndrome (i.e. syn = 001 = index 4) */
@@ -203,16 +203,34 @@ void decode ( /*in*/ byte *received, /*out*/ byte *msg )
   byte e ;  /* e is a index to the error vector */
   byte n ;
   byte k ;
+  byte b ;
+  byte s [D] ;
+  byte c [N] ;
+  byte r [N] ;
   
   /* calc syndrome */
   compute_syndrome (received, syndrome) ;
   
   /* codeword = r + e, and msg = codeword [1:K] */
+  
   for ( n=0; n<N; n++ )
   {
-    codeword [n] = received [n] ^ coset_leader [    syndrome [0] 
-                                                 | (syndrome [1] << 1)
-                                                 | (syndrome [2] << 2) ][n] ;
+    //codeword [n] = received [n] ^ coset_leader [    syndrome [0] 
+    //                                             | (syndrome [1] << 1)
+    //                                             | (syndrome [2] << 2) ][n] ;
+    c [n] = 0 ;
+    for (b=0; b<8; b++)
+    {
+       r [n] = ( received [n] >> b ) & 0x01 ;
+       s [0] = ( syndrome [0] >> b ) & 0x01 ;
+       s [1] = ( syndrome [1] >> b ) & 0x01 ;
+       s [2] = ( syndrome [2] >> b ) & 0x01 ;
+       e = coset_leader [ s [0] | (s [1] << 1) | (s [2] << 2) ][n] ;
+       c [n] ^= ( ( r [n] ^ e ) << b ) & ( 0x01 << b) ;
+    }
+    
+    codeword [n] = c [n] ;
+    
     if (n<K)
       msg [n] = codeword [n] ;
   }
@@ -228,6 +246,33 @@ void decode ( /*in*/ byte *received, /*out*/ byte *msg )
   
 }
 
+
+
+void test_block_operations()
+{
+  int j;
+  byte msg [K] = {'b','u','d','p'};
+  byte codeword [N] ;
+  byte received [N] ;
+  
+  
+  printf ("testing block operations...\n") ;
+  printf( "msg:\'%.*s\'\n", 4, msg );
+  encode ( msg, codeword ) ;
+  printf ("\n") ;
+  printf( "codeword:\'%.*s\'\n", 7, codeword );
+  
+  /* send it thru noisy channel (causing an error) */
+  for (j=0; j<N; j++)
+    received [j] = codeword [j] ^ (coset_leader [5][j] * 0xff) ;
+  printf( "received:\'%.*s\'\n", 7, received );
+
+  /* determine syndrome */
+  decode ( received, msg ) ;
+  printf ("\n") ;
+  printf( "reconstructed msg:\'%.*s\'\n", 4, msg );
+
+}
 
 
 /* main program entry point */
@@ -280,6 +325,8 @@ int main()
     
   }
   printf ("\n") ;
+  
+  test_block_operations();
   
   return 0;
 }
