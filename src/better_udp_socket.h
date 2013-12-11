@@ -9,7 +9,8 @@
 /* sequence total number size */
 #define SEQ_TOTAL_NUM_SIZE ( sizeof( int ) )
 
-#define DATA_SIZE            ( sizeof( char )*100 )
+#define DATA_SIZE            ( sizeof( char ) )
+//#define DATA_SIZE            ( sizeof( char )*100 )
 
 /* BUDP only size ( not UDP header )*/
 #define MSG_CHUNK_SIZE       ( SEQ_NUM_SIZE + SEQ_TOTAL_NUM_SIZE + DATA_SIZE )

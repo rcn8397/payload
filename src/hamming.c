@@ -15,10 +15,30 @@
  */
  /* generator matrix  */
 byte G [NUM_DATA_BITS][NUM_CODE_BITS] = 
-		  { { 1, 0, 0, 0, 1, 1, 0 }, 
-                  { 0, 1, 0, 0, 1, 0, 1 },
-                  { 0, 0, 1, 0, 0, 1, 1 },
-                  { 0, 0, 0, 1, 1, 1, 1 } };
+		  { { 0xff, 0,    0,    0,    0xff, 0xff, 0    }, 
+                    { 0,    0xff, 0,    0,    0xff, 0,    0xff },
+                    { 0,    0,    0xff, 0,    0,    0xff, 0xff },
+                    { 0,    0,    0,    0xff, 0xff, 0xff, 0xff } };
+
+
+/* parity-check matrix  */
+byte H [NUM_PARITY_BITS][NUM_CODE_BITS] = 
+                { { 0xff, 0xff, 0,    0xff, 0xff, 0,    0    }, 
+                  { 0xff, 0,    0xff, 0xff, 0,    0xff, 0    },
+                  { 0,    0xff, 0xff, 0xff, 0,    0,    0xff } };
+
+
+/* coset leader LUT index by syndrome (i.e. syn = 001 = index 4) */
+byte coset_leader [NUM_CODE_BITS+1][NUM_CODE_BITS] = 
+                             { { 0, 0, 0, 0, 0, 0, 0 }, 
+                               { 0, 0, 0, 0, 1, 0, 0 },
+                               { 0, 0, 0, 0, 0, 1, 0 },
+                               { 1, 0, 0, 0, 0, 0, 0 },
+                               { 0, 0, 0, 0, 0, 0, 1 },
+                               { 0, 1, 0, 0, 0, 0, 0 },
+                               { 0, 0, 1, 0, 0, 0, 0 },
+                               { 0, 0, 0, 1, 0, 0, 0 } } ;
+
 
 char byte_count;
 byte outer_msg [NUM_BITS_PER_BYTE] ;
@@ -217,6 +237,68 @@ bool eccGetMsg( byte** buff, int* buff_len, int* seqNum )
     return have_waiting_packets || waiting_for_more ;
 }
 
+
+
+/* multiplies received vector by H to give syndrome */
+void compute_syndrome (int idx, byte *syndrome) //(byte *received, byte *syndrome)
+{
+  int n, d;
+  /* matrix multiplication */
+  for ( d=0; d<NUM_PARITY_BITS; d++ )
+  {
+    syndrome [d] = 0 ;
+    for ( n=0; n<NUM_CODE_BITS; n++)
+      syndrome [d] ^= ( receivedPackets [idx + n].buff[0] & H [d][n] ) ;
+    // probably needs to be the following
+    //for (j=0; j<DATA_SIZE; j++) 
+    //  syndrome [j][d] ^= ( receivedPackets [idx + n].buff[j] & H [d][n] ) ;
+  }
+  
+  
+}
+
+/* Performs error-correction
+ 
+ */
+void eccCorrect( int block_idx )
+{
+  int i = toBlockStartIndex (block_idx * BLOCK_PACKETS) ;
+  byte syndrome [NUM_PARITY_BITS] ;
+  byte e ;
+  byte n ;
+  byte k ;
+  byte b ;
+  byte s [NUM_PARITY_BITS] ;
+  byte c [NUM_CODE_BITS] ;
+  byte r [NUM_CODE_BITS] ;
+  
+  /* calc syndrome */
+  compute_syndrome ( i, syndrome ) ;
+  
+   
+  /* codeword = r + e, and msg = codeword [1:K] */
+  for ( n=0; n<NUM_CODE_BITS; n++ )
+  {
+    c [n] = 0 ;
+    for (b=0; b< NUM_BITS_PER_BYTE; b++)
+    {
+       r [n] = ( receivedPackets [i+n] . buff[0] >> b ) & 0x01 ;
+       s [0] = ( syndrome [0] >> b ) & 0x01 ;
+       s [1] = ( syndrome [1] >> b ) & 0x01 ;
+       s [2] = ( syndrome [2] >> b ) & 0x01 ;
+       e = coset_leader [ s [0] | (s [1] << 1) | (s [2] << 2) ][n] ;
+       c [n] ^= ( ( r [n] ^ e ) << b ) & ( 0x01 << b) ;
+    }
+    
+    receivedPackets [i + n] . buff[0] = c [n] ;
+    
+    //if ((n<4) && (receivedPackets[ i + n ].state == STATE_WAITING))
+    //  receivedPackets[ i + n ].state = STATE_RECEIVED ;
+  }
+}
+
+
+
 /* Start tracking a new packet fromt the net.
  
    This will:
@@ -280,7 +362,9 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
         if( receivedPackets[ i ].state == STATE_WAITING )
           receivedPackets[ i ].countDown--;
         if( receivedPackets[ i ].countDown == 0 )
+        {
           receivedPackets[ i ].state = STATE_READY;
+        }
       }
     }
 
@@ -290,9 +374,15 @@ void eccReceiveMsg( int seqNum, int _totalSeq, byte** buff, int buffLen )
     receivedPackets[ pos ].state     = STATE_READY;
 
     // CARSON/BILLY TODO: add ecc correction here!!!
-    //if( receivedPacketsCount[ block_idx ] == 6 )
-    //  do ecc correction for final packet
-    //  eccCorrect( block_idx );
+    if( receivedPacketsCount[ block_idx ] == 6 )
+    {
+      eccCorrect( block_idx );  //  do ecc correction for final packet
+      //receivedPacketsCount[ block_idx ]++;
+      //int end = ( totalSeq - seqNum ) <= ( totalSeq % 7 ) ? 
+      //                  toIndex(totalSeq)+1 : 
+      //                  toBlockEndIndex(seqNum);
+      //pos = end;
+    }
 
     // for all packets in this group before the current sequence number, if we haven't
     // received the packet, start the count down timer for it
