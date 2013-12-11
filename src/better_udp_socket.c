@@ -102,6 +102,7 @@ int BetterUDP_receive( byte** receive_buffer )
         memcpy( reassembleBuff + seqNum*DATA_SIZE, buff, buff_len );
         //printf( "   data[%i] = %i,%i\n", seqNum*DATA_SIZE, buff[0], (byte)(*(reassembleBuff + seqNum*DATA_SIZE)) ); 
         maxSeqNum = seqNum > maxSeqNum ? seqNum : maxSeqNum ;
+        reassembleBuffSize += buff_len ;
       }
 
       /* receive a new msg from the net*/
@@ -140,7 +141,6 @@ int BetterUDP_receive( byte** receive_buffer )
       }
     }
 
-    reassembleBuffSize = maxSeqNum * MSG_CHUNK_SIZE;
 
     printf( "Received %i UDP packets\n", totalSeq );
   
