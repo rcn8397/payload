@@ -3,7 +3,7 @@
 
 #include "packets.h"
 
-void client( const char *address, const char *port, const char *data );
+void client( const char *address, const char *port, const char *data, int udp );
 
 
 #endif /* _CLIENT_H_ */

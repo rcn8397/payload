@@ -35,7 +35,7 @@ int readFile( const char* fn, char** buff )
     return size;
 }
 
-void client( const char *address, const char *port, const char *data )
+void client( const char *address, const char *port, const char *data, int udp )
 {
     log_domain = g_strdup( "CLIENT:" );
 
@@ -56,7 +56,22 @@ void client( const char *address, const char *port, const char *data )
     UDP_ClientInit( port, address );
 
     printf( "Sending %i bytes\n", strlen( buffer ));
-    BetterUDP_send( buffer, length-1 );
+
+    if( udp )
+    {
+      printf( "sending with udp\n" );
+   
+      char* ptr = buffer;
+      while( ptr < ( buffer + length ) )
+      {
+        UDP_send( ptr, 1 );
+        ptr += 1;
+      }
+      char end = 0;
+      UDP_send( &end, 1 );
+    }
+    else
+      BetterUDP_send( buffer, length-1 );
     
     UDP_close();
 
