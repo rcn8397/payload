@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "udp_socket.h"
 #include "client.h"
@@ -64,8 +65,11 @@ void client( const char *address, const char *port, const char *data, int udp )
       char* ptr = buffer;
       while( ptr < ( buffer + length ) )
       {
-        UDP_send( ptr, 1 );
+        
+        if ((ptr-buffer)%4<3)
+          UDP_send( ptr, 1 );
         ptr += 1;
+        usleep( 1 );
       }
       char end = 0;
       UDP_send( &end, 1 );

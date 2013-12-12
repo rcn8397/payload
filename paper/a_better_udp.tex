@@ -497,27 +497,27 @@ code chosen and the selection of its associated redundancy parameters.
 % no \IEEEPARstart
 When a software engineer begins designing a
 network application, he or she has to make a decision between
-two transport layer options, TCP or UDP \cite{kurose2012computer}.
+two transport layer options: TCP or UDP \cite{kurose2012computer}.
 There are advantages and disadvantages to both.  With UDP comes
 nimbleness and low overhead, along with dropped and possibly
 out-of-sequence datagrams.  With TCP comes reliable connection-oriented
 stream-based communication at the expense of throughput \cite{kurose2012computer}.
-There isn't much middle ground between the two.  The approach discussed
+There is not much middle ground between the two.  The approach discussed
 in this paper attempts to change that.
 % You must have at least 2 lines in the paragraph with the drop letter
 % (should never be an issue)
 
-We don't attempt or intend to redesign either protocol.  Instead,
+We do not attempt or intend to redesign either protocol.  Instead,
 we seek to enhance the reliability of UDP, so that it is a little
 more like TCP, while remaining quick and connectionless.  To do this,
 we will require two added features to be built ``on top'' of UDP:
 Sequence Numbers and Error-Correcting Codes.
 
 The introduction of sequence numbers should be somewhat obvious;
-on the receiving end of the UDP pathway there should be someway
+on the receiving end of the UDP pathway, there should be someway
 to put datagrams back in order.  The subtlety, however, of requiring
 sequence numbers is that in order for our error-correcting codes
-approach to work, for the code we experimented with, at least 75\%
+approach to work for the code we experimented with at least 75\%
 of the datagram payload data must be available and properly
 sequenced.  So, the inclusion of sequence numbers is really
 twofold.
@@ -531,7 +531,7 @@ Given the no-guaranty and low-reliability characteristics of
 the networking layer and the little added value of UDP,
 a virtual communication link through a UDP socket represents
 an unreliable, and potentially noisy, channel, making it
-a good candidate for a solution based on error-correcting codes.
+a viable candidate for a solution based on error-correcting codes.
 
 
 \subsection{Error-Correcting Codes}
@@ -544,7 +544,7 @@ encoded message is sent through a \emph{channel}, which is
 certain to have some level of noise that may possibly alter
 the codeword.  This possibly-altered codeword is then received
 by the \emph{decoder} where it is matched with its most likely
-candidate codeword which is in turn translated into a message
+candidate codeword, which is in turn translated into a message
 resembling the original message and passed on to the \emph{receiver}.
 The degree of resemblance to the original message depends
 on how appropriate the code is in relation to the channel.\\
@@ -579,7 +579,7 @@ on how appropriate the code is in relation to the channel.\\
 \label{YES_or_NO}
 Suppose we are using an alphabet containing only two symbols,
 say 0 and 1 and we wish to send a message to a friend of either
-``YES'' or ``NO''.  We first might consider encoding 1 for
+``YES'' or ``NO.''  We first might consider encoding 1 for
 ``YES'' and 0 for ``NO''; however, if the codeword 0 is sent
 and then altered by the channel to be received as 1, the
 decoder will incorrectly pass the message ``YES'' to the receiver.
@@ -587,18 +587,18 @@ One way of improving the situation is to add redundancy by
 repeating the symbol.  For instance, we might encode ``YES''
 as the codeword 11 and ``NO'' as 00.  Now if ``NO'' is sent,
 two errors would have to occur before the decoder returns
-an incorrect message.  If one error occurs then the received
+an incorrect message.  If one error occurs, then the received
 vector will either be 10 or 01, neither of which is a codeword.
 At this point, the receiver might request a retransmission.
 This is an example of a code in which one error may be detected.
-To strengthen the code to be error-correcting we might increase
+To strengthen the code to be error-correcting, we might increase
 the redundancy by repeating the message five times.  Thus we
-encode our message ``NO'' as 00000.  Perhaps the channels
+encode our message ``NO'' as 00000.  Perhaps the channel
 interferes to cause the decoder to receive the vector 00110.
-Using the method of nearest neighbor decoding the decoder
+Using the method of nearest neighbor decoding, the decoder
 assesses the message and decides that of the two possible
 codewords (i.e. 00000 and 11111) 00000 is more likely the
-one originally sent and hence is correctly decoded as ``NO''.
+one originally sent and hence is correctly decoded as ``NO.''
 \end{example}
 
 
@@ -683,8 +683,8 @@ and the {\bf redundancy} is $n-k$.
 \end{definition}
 
 Since $\mathbf{C}$ is a subspace, it follows that the
-{\bf all-zero} vector must be a codeword in $\mathbf{C}$
-also the sum of any two codewords must also be a codeword
+{\bf all-zero} vector must be a codeword in $\mathbf{C}$.
+Also, the sum of any two codewords must also be a codeword
 in $\mathbf{C}$.  We will also see after the next
 definition that the distance $d$ is also easy to
 calculate for linear codes.
@@ -772,8 +772,8 @@ buffered, assigned sequence numbers, encoded to produce
 an ECC, and then sent as datagrams via standard UDP to
 their destination address. At the destination, the
 datagrams are collected and stored in an accumulation
-buffer, where they are placed in their proper sequence,
-see Figure \ref{overview_schematic}.  The purpose of
+buffer, where they are placed in their proper sequence
+(see Figure \ref{overview_schematic}).  The purpose of
 buffering at the source is to support the process of
 encoding the ECC.  At the destination, it is a requisite
 part of the process since datagrams, presumably, arrive
@@ -782,9 +782,9 @@ a sufficient amount of the block data has been received.
 Here, we say block data, because as we will soon see
 datagrams have to be encoded in groups which we refer
 to, at various places in the source code, as blocks,
-for ``blocks of datagrams''.
+for ``blocks of datagrams.''
 
-One of three conditions, prompts the delivery of messages
+One of three conditions prompts the delivery of messages
 to the application layer at the destination:
 
 \begin{enumerate}
@@ -797,8 +797,8 @@ to the application layer at the destination:
 \noindent The first of these conditions is obvious, while
 the other two require further explanation.  It is easier
 to explain 3) first, so we will do that now.  As stated
-previously in our introduction, we don't intend to rewrite
-TCP and we would like to keep our UDP implementation
+previously in our introduction, we do not intend to rewrite
+TCP, and we would like to keep our UDP implementation
 connectionless, so instead of requesting retransmission
 of missing datagrams, for example, when the one of the first
 two conditions above is not met, our implementation will
@@ -863,19 +863,19 @@ were four-fold:
 
 \subsection{Encoding and Decoding}
 Encoding the message stream, using four messages
-at a time, produces a 3 ECC messages which are sent
+at a time, produces three ECC messages which are sent
 seperately as follow-on datagrams.  So, at an overly simplified
 level, the message stream, grouped in blocks of seven, flows like so:
 $$ \cdots ddddpppddddppp\cdots $$ where $d$ is a data symbol
-from the source application, and $p$ is a parity-check symbol
+from the sender application, and $p$ is a parity-check symbol
 associated with the four most recent $d$ symbols prior to it.
 This represents an increase of 75\% in the number of datagrams
 transmitted. These ECC or parity-check datagrams also contain
-sequence numbers, which are a continuation of the sequence
-numbers assigned to data messages.  These sequence numbers
+sequence numbers, which are a continuation of the sequence numbers
+assigned to application data messages.  These sequence numbers
 are used in the identification of these datagrams as containing
-ECCs. They are also used to identify with which data-containing
-datagrams they are associated.
+parity-check bytes. They are also used to identify with which
+application data containing datagrams they are associated.
 
 To use the [7,4,3] Hamming code, there are two very
 important matrices required: the \emph{generator matrix}
@@ -910,16 +910,16 @@ of the math is represented as a row vector in $\mathbf{F}^4_2$,
 multiply it on the right by $G$ to get $mG$, which is
 a row vector in $\mathbf{F}^7_2$, where the first four
 coordinates are $m$ and the last 3 coordinates are the
-parity-check bits, or (as we have been referring to them)
-the ``ECC''.  In RFC 5510\cite{lacan2009reed}, these bits
+parity-check bits, or (as we have been colloquially referring
+to them) the ``ECC.''  In RFC 5510\cite{lacan2009reed}, these bits
 are called repair symbols.
 
 At the destination, to decode the received vector $r\in\mathbf{F}^7_2$,
 mutliply it on the right by $H^\text{T}$ to get $rH^\text{T}$, which is
 a row vector in $\mathbf{F}^3_2$ known as the syndrome.  Next, syndrome
-decoding is performed whereby a \emph{coset leader} $e$ is matched
-with the syndrome $rH$. This coset leader represents the error vector
-which is the error between the received vector $r$ and the closest
+decoding is performed whereby a \emph{coset leader} $e$ is matched with
+the syndrome $rH^\text{T}$. This coset leader represents the error vector,
+which is the error between the received vector $r$ and the nearest
 neighboring codeword $c$ to it. To determine $c$ simply add $r$ and
 $e$ modulo 2. That is,
 
@@ -959,33 +959,32 @@ we felt it added.  This two-level scheme is shown in Figure
 one-level approach turns out to be an outer ECC in the
 two-level approach as shown in Figure \ref{two_level_scheme}.
 This two level scheme is very similar to the way CDs and DVDs
-are encoded with error-correcting redundancy\cite{kou2001low}.
+are encoded for error recovery\cite{kou2001low}.
 
 The second level is the so-called inner or message level
 ECC encoding.  This inner ECC would allow for checking and
-rectifying datagram integrity.  That is, if a datagram were
+restoring datagram integrity.  That is, if a datagram were
 received at the destination and found to be corrupted, it could
-be ``fixed''.  We felt this redundancy would never fulfill
-its purpose since stock UDP already provides a checksumming
-mechanism that potentially discards the datagram in the case
-where data corruption is detected.
+be ``fixed.''  We felt this redundancy would never fulfill
+its purpose since stock UDP (and, potentially, layers below it
+such as Ethernet and 802.11 \cite{kurose2012computer}) already
+provides a checksumming mechanism that potentially discard 
+corrupted datagrams.
 
-Besides, to make a scheme like this work, at least for the layer
-approach in the figure, the inner ECC would have to have almost
+To make a scheme like this work, at least for the approach in
+Figure \ref{two_level_scheme}, the inner ECC would have to have almost
 as many parity bits as there are data bits in the application layer
 message.  The reason for this is that in the case of a lost datagram
-the outer ECC will have to regenerate the missing inner ECC, which,
+the outer ECC would have to regenerate the missing inner ECC, which,
 in turn, would have to regenerate the application layer message data.
 Our initial thought on this is that it will force a fixed-size
-payload, so that the size of the inner ECC can be pre-determined,
-but once this two-level scheme is prototyped we may find this
-isn't the case.
+payload, so that the size of the inner ECC can be pre-determined.
 
 With all the header overhead already inherent in the Internet
 Protocol plus adding a sequence number and stream-level error-correction
 codes, the actual application data might end up only accounting for
 20-40\% of the data transmitted, depending on how the application
-data is feed to the DUBP layer.  Adding a second level of ECCs
+data is fed to the DUBP layer.  Adding a second level of ECCs
 would only exacerbate this condition and provide little added benefit.
 
 
@@ -1011,10 +1010,8 @@ would only exacerbate this condition and provide little added benefit.
 
 Our BUDP datagram will be encapsulated in an ordinary
 UDP datagram.  More specifically, BUDP will contain a
-header including a field for the sequence number and
-a field for an ECC flag, indicating whether the
-payload holds an ECC or data.  This BUDP datagram
-(BUDP header + BUDP payload), will form the payload
+header including a field for the sequence number.  This
+BUDP datagram (BUDP header + BUDP payload), will form the payload
 of a regular UDP datagram.  See Figure \ref{budp_encap}
 below.
 
@@ -1026,71 +1023,93 @@ below.
 \end{figure}
 
 
-\section{Results}
-We coded are design in standard C on a Linux Ubuntu 12.04
-system. We implemented the receive side of our design as a state
-machine to deal with reordering of datagrams and the
-countdown timer.  The error-correcting code detailed above
-was fully functional and verified to be correcting 1 byte
-erasure errors when that byte was the only byte missing
-in its datagram block.
+\section{Testing}
+\subsection{Method}
+We have a fully functional implementation of A Better UDP
+protocol which was written in standard C.  It was developed
+on a few different Linux workstations and an Apple laptop.
+Our code was version-controlled through the whole process
+with tools offered through http://bitbucket.org.  The source
+code along with wireshark traces is included with this submittal.
+The code was written entirely from scratch.  This proved
+challenging at times, but we are glad we did it this way,
+because we learned about a lot of ``gotchas'' in our
+sequencing and error-correcting design.
 
-We transmitted a text file over better UDP, which contained
+The receiving side of the protocol was implemented as a
+state machine, which we like for its utility in exposing
+the interworkings of what is happening in the various
+cases of receiving, buffering, reordering, and error-correcting.
+
+Currently, the state machine is not bug-free, but it is working
+well enough to confirm some of our theory and predictions, which
+we detail here.
+
+Firstly, we planned to compare our BUDP benchmark against
+TCP, but unfortunately the clock ran out on us for getting
+this done in an apples-to-apples sort of way.  The test
+environment to do this was a little more challenging to get
+going due to the fact that we would have to standup some sort
+of WAN emulator requiring three PCs networked together.  We
+have those resources in the lab, but it takes a fair bit
+of coordination to pull off.  So, we benchmarked BUDP vs stock UDP
+and kept the test case simple and controlled.  We programmatically
+forced every $4^{th}$ datagram to be lost.  That is, we simply
+did not send it.  For BUDP, we still sent the ECC bytes that trail
+the $4^{th}$ datagram.
+
+Secondly, for timing each transmit session we used Wireshark and
+did the transmission over the loopback address.  This turned out
+to be a very test friendly way of doing things, besides recording
+packets in sufficient detail.
+
+Lastly, for transmission data we used text file, which contained
 the text to the ebook ``A Christmas Carol'' by Charles Dickens
-as it seemed appropriate given the season.
+as it seemed appropriate given the season.  This file contained
+189067 and is also included with our submission.  Hopefully,
+this passes the fair use clause of copyright law.
 
-Getting to full test environment where
-we would be able to record a data transfer session through
-a simulated WAN with non-zero packet loss probability presented
-more of a challenge.  Our state machine performed well
-for the trivial case where loss probability=0.  In fact,
-our UDP implementation reproduce the text perfectly.
+\subsection{Results}
+With BUDP, for every 4 data bytes we are sending 3 parity-check
+bytes, whereas for stock UDP only the 4 data bytes are sent. Therefore,
+we expected the transmission time for BUDP to be, roughly, 1.75
+times greater than the transmission time of stock UDP.  This is
+exactly, with in tolerances, what we saw.  Table \ref{timing_tab}
+summarizes the timing outputs for both BUDP and stock UDP Wireshark
+sessions.  The increase in BUDP over UDP represents a $1.765$
+multiple.  The difference between that and the predicted $1.75$
+could be due to the added bytes in the BUDP datagram for sequence
+numbers.
+
+\begin{table}[!h]
+\renewcommand{\arraystretch}{1.3}
+\caption{Wireshark Trace Timings}
+\label{timing_tab}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Protocol & Timing (sec.)\\
+\hline
+UDP & 11.15\\
+\hline
+BUDP & 19.68\\
+\hline
+\end{tabular}
+\end{table}
+
+Also, the [7,4,3] Hamming code provided the error-correction
+capability we anticipated.  On the receiver side of the dataflow,
+we wrote the received application
+data (post error recovery) to an output file named ``budp.out''.
+We used a tool known as \verb+meld+ to ``diff'' the BUDP output
+with the original text and found they were identical.  Remember,
+this includes forcing the sender to drop every $4^{th}$ data
+byte.  Obviously, a similar ``diff'' between the stock UDP
+output and the original file showed every $4^{th}$ text character
+was missing.  This proves our assertion, in the beginning, that
+BUDP improves upon UDP.
 
 
-When we attempted to increase the probability to 0.01, we entered
-a weird tracking state in our BUDP benchmark where it thought
-it already had unreceived data in the receive-side data buffer.
-It seems to be an indexing problem, that we never could fully
-debug.
-
-We expected our our implementation to perform at
-$4/7$ the throughput of stock UDP, due to the
-fact that there were 75\% more bits for redundancy.
-Said another way, we expected our implement to operate
-at this multiple of stock UDP, because $4/7$ is the 
-information rate of the code we chose to implement.
-We attempted to verify this for the trivial case
-where there is zero packet loss by using the Linux
-\verb+time+ command.  We aren't really sure what to
-make of the results as in terms of system BUDP
-operated at a 0.854 multiple of stock UDP.  However,
-in terms of real time BUDP operated at a 0.181 multiple.
-Clearly, not much can be gleaned from these numbers.
-Interestingly, the average of these (i.e. 0.518) is
-closer to the number we were looking for.  Surely, though,
-what we need is a better test environment. Performing a
-packet capture using Wireshark on the loopback address
-confirmed a multiple closer to the low end, with wireshark
-seeing a 0.21 multiple, which implies our implementation
-is 5 times slower that UDP.
-
-What we were curious to see is how well it fared compared
-to standard TCP, but due to the tracking issue reported
-above the best we were able to do was show that with
-10\% packet loss, TCP was able to transmit the ebook
-without any data loss.
-
-To run these benchmarks, we forced datagrams to be
-drop via the following Linux iptables command:\\
-
-%\begin{verbatim}
-{\small\verb+iptables -A INPUT -m statistic --mode random+}
-{\small\verb+        --probability 0.1 -j DROP+}\\
-%\end{verbatim}
-
-We confirm network packets were being dropped by pinging
-\verb+localhost+ and seeing about 1 on 10 ping requests
-drop out.
 
 
 %Subsubsection text here.
@@ -1154,13 +1173,13 @@ drop out.
 %\begin{table}[!t]
 %% increase table row spacing, adjust to taste
 %\renewcommand{\arraystretch}{1.3}
-% if using array.sty, it might be a good idea to tweak the value of
-% \extrarowheight as needed to properly center the text within the cells
+%% if using array.sty, it might be a good idea to tweak the value of
+%% \extrarowheight as needed to properly center the text within the cells
 %\caption{An Example of a Table}
 %\label{table_example}
 %\centering
-%% Some packages, such as MDW tools, offer better commands for making tables
-%% than the plain LaTeX2e tabular which is used here.
+%%% Some packages, such as MDW tools, offer better commands for making tables
+%%% than the plain LaTeX2e tabular which is used here.
 %\begin{tabular}{|c||c|}
 %\hline
 %One & Two\\
@@ -1184,36 +1203,39 @@ drop out.
 We have presented a design for a better UDP implementation
 where datagrams arrive in-order to the application layer
 at the destination and when a datagram is lost it can be
-reconstructed, provided 75\% of the datagrams in its ECC
-grouping and the ECC arrive intact.  If these latter two
-conditions are not met, then BUDP simply hands over what
-it does have to the application layer after a countdown
+reconstructed, provided 75\% of the datagrams in its same
+encoding block and their
+associated parity-check bytes arrive intact.  If these latter
+two conditions are not met, then BUDP simply hands over what
+it has available to the application layer after a countdown
 clock expires.  In this case, it essentially falls back
-to standard UDP implement plus the benefit of in-order
-datagrams.
+to a standard UDP implementation with the added benefit of in-order
+datagrams.  This implementation requires the maintaining
+of buffers at both the sender and receiver sides of the
+communication channel for purposes of computing the parity-check
+bytes, datagram re-ordering, and recovering missing datagrams.
 
 Clearly, we need to do some more work on our implementation
-as the thoughput timings compared to stock UDP are less than
-half of what we were expecting.  This is perhaps due to
-software computations for the correcting the missing datagrams.
-A hardware accelerated version is preferred.
+as the thoughput timings compared to stock UDP are 75\%
+higher, though this was anticipated for the code we chose
+to implement.  We believe this design has a roadmap to better
+timings while maintaining the same error-recovery characteristics,
+with newer codes generated by finite geometries promising
+to provide this correctability at optimal speeds\cite{kou2001low}.
 
-In spite of the setback with our implementation not tracking
-according to theory, we feel we are on the right path with
-researching codes that are generated by finite geometries
-as codes of this nature are able to operate near the Shannon
-limit of the channel \cite{kou2001low}.
-
-Also, we find it interesting that finite geometries keeps
+Also, we find it interesting that finite geometry keeps
 finding its way back into the discussion of optimal error-correcting
-codes \cite{assmus1992designs} \cite{kou2001low}.
+codes \cite{kou2001low}\cite{assmus1992designs}.
 
-Our view is that in order to deal with the unreliability inherent
-in the Internet Protocol, a designer has to either build
+Finally, our view is that in order to deal with the unreliability
+inherent in the Internet Protocol, a designer has to either build
 in redunduncy to help clean up the communication channel or
-(s)he has to build in a retransmission infastructure, as
+has to build in a retransmission infastructure, as
 is the case with TCP.  We prefer the error-correcting approach
-as it would be the most elegant and mathematically interesting.
+as it is more elegant and mathematically interesting
+and offers a path to an optimal speed protocol.  If in the future
+such happens, we do not see why a designer would use TCP, or at
+least we feel TCP would be used less frequently.
 
 
 

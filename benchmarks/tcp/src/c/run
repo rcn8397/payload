@@ -1,2 +1,0 @@
-#!/bin/sh
-( cat ../../../../data/christmas_carol.txt ) | ./a.out
